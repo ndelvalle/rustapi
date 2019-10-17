@@ -1,11 +1,9 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use] extern crate rocket;
-#[macro_use] extern crate serde_derive;
+extern crate serde_derive;
 extern crate config;
 extern crate serde;
-// #[macro_use(Model)] extern crate wither_derive;
-// extern crate wither;
 
 mod settings;
 
