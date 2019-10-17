@@ -1,9 +1,15 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use] extern crate rocket;
-extern crate dotenv;
+#[macro_use] extern crate serde_derive;
+extern crate config;
+extern crate serde;
+// #[macro_use(Model)] extern crate wither_derive;
+// extern crate wither;
 
-use dotenv::dotenv;
+mod settings;
+
+use settings::Settings;
 
 #[get("/")]
 fn index() -> &'static str {
@@ -11,6 +17,9 @@ fn index() -> &'static str {
 }
 
 fn main() {
-    dotenv().ok();
+    let settings = Settings::new();
+
+    println!("Settings: {:?}", settings);
+
     rocket::ignite().mount("/", routes![index]).launch();
 }
