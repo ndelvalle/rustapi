@@ -1,14 +1,28 @@
-use std::env;
-use config::{Config, File, Environment, ConfigError};
+use config::{Config, ConfigError, Environment, File};
+use std::{env, fmt};
 
 #[derive(Debug, Deserialize)]
-struct Database {
-    url: String,
+pub struct Server {
+    pub address: String,
+    pub port: u16,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Logger {
+    pub level: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Database {
+    pub url: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
-    database: Database,
+    pub environment: String,
+    pub server: Server,
+    pub logger: Logger,
+    pub database: Database,
 }
 
 impl Settings {
@@ -17,10 +31,7 @@ impl Settings {
 
         settings.merge(File::with_name("config/default"))?;
 
-        // Add in the current environment file
-        // Default to 'dev' env
-        // Note that this file is _optional_
-        let env = env::var("RUN_MODE").unwrap_or("dev".into());
+        let env = env::var("RUN_MODE").unwrap_or("development".into());
         settings.merge(File::with_name(&format!("config/{}", env)).required(false))?;
         settings.merge(File::with_name("config/local").required(false))?;
 
@@ -28,11 +39,12 @@ impl Settings {
         // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
         settings.merge(Environment::with_prefix("app"))?;
 
-        // Now that we're done, let's access our configuration
-        // println!("debug: {:?}", s.get_bool("debug"));
-        // println!("database: {:?}", s.get::<String>("database.url"));
-
-        // You can deserialize (and thus freeze) the entire configuration as
         settings.try_into()
+    }
+}
+
+impl fmt::Display for Server {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}:{}", &self.address, &self.port)
     }
 }

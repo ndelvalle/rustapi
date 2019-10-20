@@ -1,4 +1,13 @@
 {
+  "server": {
+    "address": "127.0.0.1",
+    "port": 8080
+  },
+
+  "logger": {
+    "level": "trace"
+  },
+
   "database": {
     "url": "mongodb://localhost:27017/codereview"
   }
