@@ -27,7 +27,6 @@ impl Settings {
         // Add in settings from the environment (with a prefix of APP)
         // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
         settings.merge(Environment::with_prefix("app"))?;
-        settings.merge(Environment::new())?;
 
         // Now that we're done, let's access our configuration
         // println!("debug: {:?}", s.get_bool("debug"));
