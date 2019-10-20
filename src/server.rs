@@ -1,4 +1,3 @@
-// use settings::Settings;
 use crate::failure::Error;
 use crate::rocket;
 use crate::settings::Settings;
