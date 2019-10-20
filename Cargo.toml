@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["ndelvalle <nicolas.delvalle@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-dotenv = "0.14.1"
+config = "0.9"
 rocket = "0.4.2"
+serde = "1.0.101"
+serde_derive = "1.0.101"
