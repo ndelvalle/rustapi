@@ -1,7 +1,7 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use] extern crate rocket;
-extern crate serde_derive;
+#[macro_use] extern crate serde_derive;
 extern crate config;
 extern crate serde;
 
@@ -15,7 +15,10 @@ fn index() -> &'static str {
 }
 
 fn main() {
-    let settings = Settings::new();
+    let settings = match Settings::new() {
+        Ok(value) => value,
+        Err(err) => panic!("Error trying to load settings. Error: {}", err)
+    };
 
     println!("Settings: {:?}", settings);
 

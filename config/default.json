@@ -1,3 +1,5 @@
 {
-  "database_url": "mongodb://localhost:27017/codereview"
+  "database": {
+    "url": "mongodb://localhost:27017/codereview"
+  }
 }
