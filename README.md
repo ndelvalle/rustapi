@@ -1,2 +1,3 @@
-# codereview-api
-Codereview project API using Rust lang
+# rustapi
+
+RESTful API template build with Rust lang
