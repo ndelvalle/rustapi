@@ -1,3 +1,3 @@
 # rustapi
 
-RESTful API template build with Rust lang
+RESTful API template built with Rust lang
