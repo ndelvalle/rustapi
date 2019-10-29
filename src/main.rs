@@ -10,7 +10,8 @@ extern crate serde;
 extern crate failure;
 #[macro_use]
 extern crate slog;
-extern crate sloggers;
+extern crate slog_async;
+extern crate slog_term;
 
 mod logger;
 mod server;
@@ -31,12 +32,11 @@ fn main() {
         Err(err) => panic!("Error trying to setup logger. Error: {}", err),
     };
 
-    let server = match Server::new(&settings) {
+    let server = match Server::new(&settings, logger.child("server".to_string())) {
         Ok(value) => value,
         Err(err) => panic!("Error trying to setup server. Error: {}", err),
     };
 
     logger.info(&format!("Starting sever at {}", &settings.server));
-
     server.launch();
 }
