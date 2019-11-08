@@ -32,11 +32,11 @@ fn main() {
         Err(err) => panic!("Error trying to setup logger. Error: {}", err),
     };
 
-    let server = match Server::new(&settings, logger.child("server".to_string())) {
+    let server = match Server::new(&settings, logger.new(o!("context" => "server"))) {
         Ok(value) => value,
         Err(err) => panic!("Error trying to setup server. Error: {}", err),
     };
 
-    logger.info(&format!("Starting sever at {}", &settings.server));
+    info!(logger, "Starting sever at {}", &settings.server);
     server.launch();
 }
