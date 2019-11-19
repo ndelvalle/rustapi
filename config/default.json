@@ -9,6 +9,6 @@
   },
 
   "database": {
-    "url": "mongodb://localhost:27017/codereview"
+    "url": "postgres://localhost:5432/rustapi"
   }
 }
