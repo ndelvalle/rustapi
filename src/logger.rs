@@ -2,7 +2,7 @@ use crate::failure::Error;
 use slog::{Drain, Level, LevelFilter};
 use std::str::FromStr;
 
-pub struct Logger {}
+pub struct Logger;
 
 impl Logger {
     pub fn new(level: &str) -> Result<slog::Logger, Error> {

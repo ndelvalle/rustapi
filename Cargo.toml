@@ -13,3 +13,12 @@ slog = "2.5.2"
 slog-term = "2.4.2"
 slog-async = "2.3.0"
 failure = "0.1.6"
+diesel = { version = "1.0.0", features = ["postgres"] }
+r2d2 = "0.8.6"
+r2d2-diesel = "1.0.0"
+serde_json = "1.0.41"
+
+[dependencies.rocket_contrib]
+version = "0.4.2"
+default-features = true
+features = ["diesel_postgres_pool"]
