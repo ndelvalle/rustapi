@@ -23,8 +23,20 @@ version = "0.4.2"
 default-features = true
 features = ["diesel_postgres_pool"]
 
-# Cargo make tasks:
+[dev-dependencies.cargo-husky]
+version = "1"
+default-features = false
+features = [
+  "run-for-all",
+  "prepush-hook",
+  "precommit-hook",
+  "run-cargo-check",
+  "run-cargo-clippy",
+  "run-cargo-fmt",
+  "run-cargo-test",
+]
 
+# Cargo make tasks:
 [tasks.format]
 install_crate = "rustfmt"
 command = "cargo"
