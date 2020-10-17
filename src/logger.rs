@@ -1,21 +1,25 @@
-use crate::failure::Error;
-use slog::{Drain, Level, LevelFilter};
+use log::LevelFilter;
+use log::{ParseLevelError, SetLoggerError};
+use pretty_env_logger::env_logger;
 use std::str::FromStr;
 
+use crate::settings::Settings;
 pub struct Logger;
+pub enum LoggerError {
+    SetLoggerError(SetLoggerError),
+    ParseLevelError(ParseLevelError),
+}
 
 impl Logger {
-    pub fn new(level: &str) -> Result<slog::Logger, Error> {
-        let logger_level = Level::from_str(level).unwrap();
-        let decorator = slog_term::TermDecorator::new().build();
+    pub fn new(settings: &Settings) -> Result<(), LoggerError> {
+        let mut builder = env_logger::Builder::new();
+        let level = LevelFilter::from_str(settings.logger.level.as_str())
+            .map_err(|err| LoggerError::ParseLevelError(err))?;
 
-        let drain = slog_term::CompactFormat::new(decorator).build().fuse();
-        let drain = slog_async::Async::new(drain).build().fuse();
-        let drain = LevelFilter::new(drain, logger_level).fuse();
-
-        let app_name = env!("CARGO_PKG_NAME");
-        let app_version = env!("CARGO_PKG_VERSION");
-
-        Ok(slog::Logger::root(drain, o!(app_name => app_version)))
+        builder.default_format();
+        builder.filter_level(level);
+        builder
+            .try_init()
+            .map_err(|err| LoggerError::SetLoggerError(err))
     }
 }

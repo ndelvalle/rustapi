@@ -5,23 +5,17 @@ authors = ["ndelvalle <nicolas.delvalle@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-config = "0.10"
-rocket = "0.4.2"
-serde = "1.0.101"
-serde_derive = "1.0.101"
-slog = "2.5.2"
-slog-term = "2.4.2"
-slog-async = "2.3.0"
-failure = "0.1.6"
-diesel = { version = "1.0.0", features = ["postgres"] }
-r2d2 = "0.8.6"
-r2d2-diesel = "1.0.0"
-serde_json = "1.0.41"
-
-[dependencies.rocket_contrib]
-version = "0.4.2"
-default-features = true
-features = ["diesel_postgres_pool"]
+config = "0.10.1"
+log = "0.4.11"
+pretty_env_logger = "0.4.0"
+serde = { version = "1.0.116", features = ["derive"] }
+serde_json = "1.0.58"
+serde_derive = "1.0.116"
+actix-web = "3.1.0"
+actix-cors = "0.4.1"
+wither = "0.9.0-alpha.2"
+futures = "0.3.6"
+thiserror = "1.0.21"
 
 [dev-dependencies.cargo-husky]
 version = "1"
@@ -35,66 +29,3 @@ features = [
   "run-cargo-fmt",
   "run-cargo-test",
 ]
-
-# Cargo make tasks:
-[tasks.format]
-install_crate = "rustfmt"
-command = "cargo"
-args = ["fmt"]
-
-[tasks.clean]
-command = "cargo"
-args = ["clean"]
-
-[tasks.build]
-command = "cargo"
-args = ["build"]
-dependencies = ["format"]
-
-[tasks.test]
-command = "cargo"
-args = ["test"]
-dependencies = ["clean"]
-
-# cargo make --makefile ./cargo.toml ci
-[tasks.ci]
-dependencies = [
-    "format",
-    "build",
-    "test"
-]
-
-# cargo make --makefile ./cargo.toml dev
-[tasks.dev]
-install_crate = "cargo-watch"
-command = "cargo"
-args = ["watch", "-x", "run"]
-
-# cargo make --makefile ./cargo.toml migration-setup
-[tasks.migration-setup]
-install_crate = { crate_name = "diesel_cli", binary = "cargo", test_arg = ["--help"] }
-install_crate_args = ["--no-default-features", "--features", "postgres"]
-command = "diesel"
-args = ["database", "setup"]
-
-# cargo make --makefile ./cargo.toml migration-up
-[tasks.migration-up]
-install_crate = { crate_name = "diesel_cli", binary = "cargo", test_arg = ["--help"] }
-install_crate_args = ["--no-default-features", "--features", "postgres"]
-command = "diesel"
-args = ["migration", "up"]
-dependencies = ["migration-setup"]
-
-# cargo make --makefile ./cargo.toml migration-down
-[tasks.migration-down]
-install_crate = { crate_name = "diesel_cli", binary = "cargo", test_arg = ["--help"] }
-install_crate_args = ["--no-default-features", "--features", "postgres"]
-command = "diesel"
-args = ["migration", "revert"]
-
-# cargo make --makefile ./cargo.toml migration-redo
-[tasks.migration-redo]
-install_crate = { crate_name = "diesel_cli", binary = "cargo", test_arg = ["--help"] }
-install_crate_args = ["--no-default-features", "--features", "postgres"]
-command = "diesel"
-args = ["migration", "redo"]

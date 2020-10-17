@@ -1,14 +1,16 @@
 {
+  "environment": "development",
+
   "server": {
-    "address": "127.0.0.1",
     "port": 8080
   },
 
   "logger": {
-    "level": "trace"
+    "level": "info"
   },
 
   "database": {
-    "url": "postgres://localhost:5432/rustapi"
+    "uri": "mongodb://localhost:27017",
+    "name": "rustapi"
   }
 }
