@@ -47,7 +47,7 @@ async fn main() {
             .wrap(middleware::Logger::default())
             .app_data(settings.clone())
             .app_data(context.clone())
-            .wrap(Cors::new().supports_credentials().finish())
+            .wrap(Cors::default().supports_credentials())
             .service(web::scope("/posts").configure(posts::route::create_router))
     })
     .bind(socket_address)
