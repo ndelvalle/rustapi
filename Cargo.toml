@@ -23,8 +23,6 @@ http = "0.2.6"
 version = "1.5.0"
 default-features = false
 features = [
-  "run-for-all",
-  "prepush-hook",
   "precommit-hook",
   "run-cargo-check",
   "run-cargo-clippy",
