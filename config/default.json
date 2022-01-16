@@ -6,7 +6,7 @@
   },
 
   "logger": {
-    "level": "info"
+    "level": "debug"
   },
 
   "database": {
