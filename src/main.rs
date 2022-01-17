@@ -1,22 +1,19 @@
 use axum::Router;
-use http::{
-  header::{HeaderName, AUTHORIZATION, CONTENT_TYPE},
-  Request, Response,
-};
+use http::header;
 use std::net::SocketAddr;
 use tower_http::{
-  compression::CompressionLayer, propagate_header::PropagateHeaderLayer, trace::TraceLayer,
+  compression::CompressionLayer, propagate_header::PropagateHeaderLayer,
+  sensitive_headers::SetSensitiveRequestHeadersLayer, trace::TraceLayer,
 };
+use tracing::info;
 
-// mod components;
-// mod context;
 mod database;
-// mod errors;
+mod lib;
 mod logger;
+mod models;
 mod routes;
 mod settings;
 
-// use components::posts;
 // use context::Context;
 use database::Database;
 use logger::Logger;
@@ -43,21 +40,23 @@ async fn main() {
   // build our application with a route
   let app = Router::new()
     .merge(routes::cat::create_route())
-    // // Mark the `Authorization` request header as sensitive so it doesn't show in logs
-    // .layer(SetSensitiveRequestHeadersLayer::new(once(AUTHORIZATION)))
+    // Mark the `Authorization` request header as sensitive so it doesn't show in logs
+    .layer(SetSensitiveRequestHeadersLayer::new(std::iter::once(
+      header::AUTHORIZATION,
+    )))
     // High level logging of requests and responses
     .layer(TraceLayer::new_for_http())
     // Compress responses
     .layer(CompressionLayer::new())
     // Propagate `X-Request-Id`s from requests to responses
-    .layer(PropagateHeaderLayer::new(HeaderName::from_static(
+    .layer(PropagateHeaderLayer::new(header::HeaderName::from_static(
       "x-request-id",
     )));
 
   let port = settings.server.port;
   let address = SocketAddr::from(([127, 0, 0, 1], port));
 
-  tracing::debug!("listening on {}", &address);
+  info!("listening on {}", &address);
 
   axum::Server::bind(&address)
     .serve(app.into_make_service())
