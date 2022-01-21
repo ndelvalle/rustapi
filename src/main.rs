@@ -1,58 +1,66 @@
-use actix_cors::Cors;
-use actix_web::{middleware, web, App, HttpServer};
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-#[macro_use]
-extern crate log;
+use axum::Router;
+use http::header;
+use std::net::SocketAddr;
+use tower_http::{
+  compression::CompressionLayer, propagate_header::PropagateHeaderLayer,
+  sensitive_headers::SetSensitiveRequestHeadersLayer, trace::TraceLayer,
+};
+use tracing::info;
 
-mod components;
-mod context;
 mod database;
 mod errors;
+mod lib;
 mod logger;
+mod models;
+mod routes;
 mod settings;
 
-use components::posts;
-use context::Context;
+// use context::Context;
 use database::Database;
 use logger::Logger;
 use settings::Settings;
 
-#[actix_web::main]
+#[tokio::main]
 async fn main() {
-    let settings = match Settings::new() {
-        Ok(value) => value,
-        Err(err) => panic!("Failed to setup configuration. Error: {}", err),
-    };
+  let settings = match Settings::new() {
+    Ok(value) => value,
+    Err(err) => panic!("Failed to setup configuration. Error: {}", err),
+  };
 
-    match Logger::new(&settings) {
-        Ok(value) => value,
-        Err(_) => panic!("Failed to setup logger"),
-    };
+  Logger::setup(&settings);
 
-    let database = match Database::new(&settings).await {
-        Ok(value) => value,
-        Err(_) => panic!("Failed to setup database connection"),
-    };
+  let _database = match Database::setup(&settings).await {
+    Ok(value) => value,
+    Err(_) => panic!("Failed to setup database connection"),
+  };
 
-    let context = web::Data::new(Context {
-        database: database.clone(),
-    });
+  // let context = web::Data::new(Context {
+  //     database: database.clone(),
+  // });
 
-    let localhost = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
-    let socket_address = SocketAddr::new(localhost, settings.server.port);
+  // build our application with a route
+  let app = Router::new()
+    .merge(routes::cat::create_route())
+    // Mark the `Authorization` request header as sensitive so it doesn't show in logs
+    .layer(SetSensitiveRequestHeadersLayer::new(std::iter::once(
+      header::AUTHORIZATION,
+    )))
+    // High level logging of requests and responses
+    .layer(TraceLayer::new_for_http())
+    // Compress responses
+    .layer(CompressionLayer::new())
+    // Propagate `X-Request-Id`s from requests to responses
+    .layer(PropagateHeaderLayer::new(header::HeaderName::from_static(
+      "x-request-id",
+    )));
 
-    HttpServer::new(move || {
-        App::new()
-            .wrap(middleware::Compress::default())
-            .wrap(middleware::Logger::default())
-            .app_data(settings.clone())
-            .app_data(context.clone())
-            .wrap(Cors::default().supports_credentials())
-            .service(web::scope("/posts").configure(posts::route::create_router))
-    })
-    .bind(socket_address)
-    .expect("Failed to bind server to specified port")
-    .run()
+  let port = settings.server.port;
+  let address = SocketAddr::from(([127, 0, 0, 1], port));
+
+  info!("listening on {}", &address);
+
+  axum::Server::bind(&address)
+    .serve(app.into_make_service())
     .await
     .expect("Failed to start server");
 }
