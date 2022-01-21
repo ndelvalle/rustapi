@@ -35,8 +35,8 @@ impl Error {
           // MongoDB E11000 error code represent a duplicate key error
           MongoErrorKind::CommandError(MongoCommandError { code: 11000, .. }) => {
             (StatusCode::BAD_REQUEST, 40002)
-          },
-          _ => (StatusCode::INTERNAL_SERVER_ERROR, 5003)
+          }
+          _ => (StatusCode::INTERNAL_SERVER_ERROR, 5003),
         }
       }
 
