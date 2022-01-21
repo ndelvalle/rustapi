@@ -8,6 +8,7 @@ use tower_http::{
 use tracing::info;
 
 mod database;
+mod errors;
 mod lib;
 mod logger;
 mod models;
@@ -28,7 +29,7 @@ async fn main() {
 
   Logger::setup(&settings);
 
-  let database = match Database::setup(&settings).await {
+  let _database = match Database::setup(&settings).await {
     Ok(value) => value,
     Err(_) => panic!("Failed to setup database connection"),
   };
