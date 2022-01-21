@@ -14,31 +14,30 @@ use wither::mongodb::options::FindOptions;
 use wither::mongodb::options::UpdateOptions;
 use wither::mongodb::results::DeleteResult;
 use wither::mongodb::results::UpdateResult;
+use wither::Model as WitherModel;
 use wither::ModelCursor;
 
 use crate::database::Database;
 use crate::errors::Error;
 
+// This is the Model trait. All models that have a MongoDB collection should
+// implement this and therefore inherit theses methods.
 #[async_trait]
-pub trait Model<T: wither::Model + Send> {
+pub trait ModelExt {
+  type T: WitherModel + Send;
+
   fn get_database(&self) -> &Database;
 
-  async fn create(&self, mut model: T) -> Result<T, Error>
-  where
-    T: 'async_trait + wither::Model + Send,
-  {
+  async fn create(&self, mut model: Self::T) -> Result<Self::T, Error> {
     let db = self.get_database();
     model.save(&db.conn, None).await.map_err(Error::Wither)?;
 
     Ok(model)
   }
 
-  async fn find_by_id(&self, id: &ObjectId) -> Result<Option<T>, Error>
-  where
-    T: wither::Model + Send,
-  {
+  async fn find_by_id(&self, id: &ObjectId) -> Result<Option<Self::T>, Error> {
     let db = self.get_database();
-    T::find_one(&db.conn, doc! { "_id": id }, None)
+    Self::T::find_one(&db.conn, doc! { "_id": id }, None)
       .await
       .map_err(Error::Wither)
   }
@@ -47,25 +46,23 @@ pub trait Model<T: wither::Model + Send> {
     &self,
     query: Document,
     options: Option<FindOneOptions>,
-  ) -> Result<Option<T>, Error>
-  where
-    T: wither::Model + Send,
-  {
+  ) -> Result<Option<Self::T>, Error> {
     let db = self.get_database();
-    T::find_one(&db.conn, query, options)
+    Self::T::find_one(&db.conn, query, options)
       .await
       .map_err(Error::Wither)
   }
 
-  async fn find(&self, query: Document, options: Option<FindOptions>) -> Result<Vec<T>, Error>
-  where
-    T: wither::Model + Send,
-  {
+  async fn find(
+    &self,
+    query: Document,
+    options: Option<FindOptions>,
+  ) -> Result<Vec<Self::T>, Error> {
     let db = self.get_database();
-    T::find(&db.conn, query, options)
+    Self::T::find(&db.conn, query, options)
       .await
       .map_err(Error::Wither)?
-      .try_collect::<Vec<T>>()
+      .try_collect::<Vec<Self::T>>()
       .await
       .map_err(Error::Wither)
   }
@@ -74,12 +71,9 @@ pub trait Model<T: wither::Model + Send> {
     &self,
     query: Document,
     options: Option<FindOptions>,
-  ) -> Result<ModelCursor<T>, Error>
-  where
-    T: wither::Model + Send,
-  {
+  ) -> Result<ModelCursor<Self::T>, Error> {
     let db = self.get_database();
-    T::find(&db.conn, query, options)
+    Self::T::find(&db.conn, query, options)
       .await
       .map_err(Error::Wither)
   }
@@ -89,12 +83,9 @@ pub trait Model<T: wither::Model + Send> {
     query: Document,
     update: Document,
     options: Option<FindOneAndUpdateOptions>,
-  ) -> Result<Option<T>, Error>
-  where
-    T: wither::Model + Send,
-  {
+  ) -> Result<Option<Self::T>, Error> {
     let db = self.get_database();
-    T::find_one_and_update(&db.conn, query, update, options)
+    Self::T::find_one_and_update(&db.conn, query, update, options)
       .await
       .map_err(Error::Wither)
   }
@@ -104,12 +95,9 @@ pub trait Model<T: wither::Model + Send> {
     query: Document,
     update: Document,
     options: Option<UpdateOptions>,
-  ) -> Result<UpdateResult, Error>
-  where
-    T: wither::Model + Send,
-  {
+  ) -> Result<UpdateResult, Error> {
     let db = self.get_database();
-    T::collection(&db.conn)
+    Self::T::collection(&db.conn)
       .update_one(query, update, options)
       .await
       .map_err(Error::Mongo)
@@ -120,55 +108,40 @@ pub trait Model<T: wither::Model + Send> {
     query: Document,
     update: Document,
     options: Option<UpdateOptions>,
-  ) -> Result<UpdateResult, Error>
-  where
-    T: wither::Model + Send,
-  {
+  ) -> Result<UpdateResult, Error> {
     let db = self.get_database();
-    T::collection(&db.conn)
+    Self::T::collection(&db.conn)
       .update_many(query, update, options)
       .await
       .map_err(Error::Mongo)
   }
 
-  async fn delete_many(&self, query: Document) -> Result<DeleteResult, Error>
-  where
-    T: wither::Model + Send,
-  {
+  async fn delete_many(&self, query: Document) -> Result<DeleteResult, Error> {
     let db = self.get_database();
-    T::delete_many(&db.conn, query, None)
+    Self::T::delete_many(&db.conn, query, None)
       .await
       .map_err(Error::Wither)
   }
 
-  async fn delete_one(&self, query: Document) -> Result<DeleteResult, Error>
-  where
-    T: wither::Model + Send,
-  {
+  async fn delete_one(&self, query: Document) -> Result<DeleteResult, Error> {
     let db = self.get_database();
-    T::collection(&db.conn)
+    Self::T::collection(&db.conn)
       .delete_one(query, None)
       .await
       .map_err(Error::Mongo)
   }
 
-  async fn count(&self, query: Document) -> Result<i64, Error>
-  where
-    T: wither::Model + Send,
-  {
+  async fn count(&self, query: Document) -> Result<i64, Error> {
     let db = self.get_database();
-    T::collection(&db.conn)
+    Self::T::collection(&db.conn)
       .count_documents(query, None)
       .await
       .map_err(Error::Mongo)
   }
 
-  async fn exists(&self, query: Document) -> Result<bool, Error>
-  where
-    T: wither::Model + Send,
-  {
+  async fn exists(&self, query: Document) -> Result<bool, Error> {
     let db = self.get_database();
-    let count = T::collection(&db.conn)
+    let count = Self::T::collection(&db.conn)
       .count_documents(query, None)
       .await
       .map_err(Error::Mongo)?;
@@ -178,11 +151,10 @@ pub trait Model<T: wither::Model + Send> {
 
   async fn aggregate<A>(&self, pipeline: Vec<Document>) -> Result<Vec<A>, Error>
   where
-    T: wither::Model + Send,
     A: Serialize + DeserializeOwned,
   {
     let db = self.get_database();
-    let documents = T::collection(&db.conn)
+    let documents = Self::T::collection(&db.conn)
       .aggregate(pipeline, None)
       .await
       .map_err(Error::Mongo)?
@@ -199,12 +171,9 @@ pub trait Model<T: wither::Model + Send> {
     Ok(documents)
   }
 
-  async fn sync_indexes(&self) -> Result<(), Error>
-  where
-    T: wither::Model + Send,
-  {
+  async fn sync_indexes(&self) -> Result<(), Error> {
     let db = self.get_database();
-    T::sync(&db.conn).await.map_err(Error::Wither)?;
+    Self::T::sync(&db.conn).await.map_err(Error::Wither)?;
 
     Ok(())
   }
