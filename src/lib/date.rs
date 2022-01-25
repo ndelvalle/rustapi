@@ -1,5 +1,7 @@
-use wither::bson::DateTime;
+use chrono::Utc;
 
-pub fn to_rfc3339(date: DateTime) -> String {
-  date.to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+pub type Date = bson::DateTime;
+
+pub fn now() -> Date {
+  Utc::now().into()
 }

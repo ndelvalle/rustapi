@@ -131,7 +131,7 @@ pub trait ModelExt {
       .map_err(Error::Mongo)
   }
 
-  async fn count(&self, query: Document) -> Result<i64, Error> {
+  async fn count(&self, query: Document) -> Result<u64, Error> {
     let db = self.get_database();
     Self::T::collection(&db.conn)
       .count_documents(query, None)
