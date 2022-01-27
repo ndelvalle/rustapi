@@ -3,11 +3,11 @@ use axum::{
   routing::{get, post, MethodRouter},
   Json, Router,
 };
-use serde::{Deserialize};
+use serde::Deserialize;
 
 use crate::context::Context;
-use crate::models::ModelExt;
 use crate::models::cat::{Cat, PublicCat};
+use crate::models::ModelExt;
 
 pub fn create_route() -> Router {
   Router::new()
@@ -26,7 +26,7 @@ struct CreateCat {
 
 async fn create_cat(
   Extension(context): Extension<Context>,
-  Json(payload):      Json<CreateCat>,
+  Json(payload): Json<CreateCat>,
 ) -> Json<PublicCat> {
   let cat = Cat::new(payload.name);
   let cat = context.cat.create(cat).await.unwrap();

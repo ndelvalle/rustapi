@@ -4,7 +4,7 @@ use http::header;
 use std::net::SocketAddr;
 use tower_http::{
   compression::CompressionLayer, propagate_header::PropagateHeaderLayer,
-  sensitive_headers::SetSensitiveRequestHeadersLayer, trace::TraceLayer,
+  sensitive_headers::SetSensitiveRequestHeadersLayer, trace,
 };
 use tracing::info;
 
@@ -46,7 +46,12 @@ async fn main() {
       header::AUTHORIZATION,
     )))
     // High level logging of requests and responses
-    .layer(TraceLayer::new_for_http())
+    .layer(
+      trace::TraceLayer::new_for_http()
+        .make_span_with(trace::DefaultMakeSpan::new().include_headers(true))
+        .on_request(trace::DefaultOnRequest::new().level(tracing::Level::INFO))
+        .on_response(trace::DefaultOnResponse::new().level(tracing::Level::INFO)),
+    )
     // Compress responses
     .layer(CompressionLayer::new())
     // Propagate `X-Request-Id`s from requests to responses
