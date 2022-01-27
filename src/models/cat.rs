@@ -1,13 +1,13 @@
+use bson::serde_helpers::bson_datetime_as_rfc3339_string;
+use bson::serde_helpers::serialize_object_id_as_hex_string;
 use serde::{Deserialize, Serialize};
 use wither::bson::{doc, oid::ObjectId};
 use wither::Model as WitherModel;
-use bson::serde_helpers::bson_datetime_as_rfc3339_string;
-use bson::serde_helpers::serialize_object_id_as_hex_string;
 
 use crate::database::Database;
-use crate::models::ModelExt;
 use crate::lib::date;
 use crate::lib::date::Date;
+use crate::models::ModelExt;
 
 #[derive(Clone)]
 pub struct Model {
@@ -39,16 +39,16 @@ pub struct Cat {
 }
 
 impl Cat {
-    pub fn new (name: String) -> Self {
-      let now = date::now();
-      Self {
-        id: None,
-        user: ObjectId::new(), // Temp
-        name,
-        updated_at: now,
-        created_at: now,
-      }
+  pub fn new(name: String) -> Self {
+    let now = date::now();
+    Self {
+      id: None,
+      user: ObjectId::new(), // Temp
+      name,
+      updated_at: now,
+      created_at: now,
     }
+  }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
