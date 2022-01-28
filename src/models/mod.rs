@@ -1,4 +1,5 @@
 pub mod cat;
+pub mod user;
 
 use async_trait::async_trait;
 use futures::stream::TryStreamExt;

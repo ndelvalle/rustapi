@@ -12,7 +12,7 @@ use crate::models::ModelExt;
 pub fn create_route() -> Router {
   Router::new()
     .merge(route("/cats", post(create_cat)))
-    .merge(route("/cats", get(find_cats)))
+    .merge(route("/cats", get(query_cats)))
 }
 
 fn route(path: &str, method_router: MethodRouter) -> Router {
@@ -35,6 +35,6 @@ async fn create_cat(
   Json(res)
 }
 
-async fn find_cats(Extension(_context): Extension<Context>) -> &'static str {
+async fn query_cats(Extension(_context): Extension<Context>) -> &'static str {
   "Hello, World!"
 }

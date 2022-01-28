@@ -40,6 +40,7 @@ async fn main() {
 
   // build our application with a route
   let app = Router::new()
+    .merge(routes::user::create_route())
     .merge(routes::cat::create_route())
     // Mark the `Authorization` request header as sensitive so it doesn't show in logs
     .layer(SetSensitiveRequestHeadersLayer::new(std::iter::once(
