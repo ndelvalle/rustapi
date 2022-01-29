@@ -19,11 +19,17 @@ pub struct Database {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct Auth {
+  pub secret: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct Settings {
   pub environment: String,
   pub server: Server,
   pub logger: Logger,
   pub database: Database,
+  pub auth: Auth,
 }
 
 impl Settings {

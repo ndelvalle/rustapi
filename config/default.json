@@ -12,5 +12,9 @@
   "database": {
     "uri": "mongodb://localhost:27017",
     "name": "rustapi"
+  },
+
+  "auth": {
+    "secret": "secret"
   }
 }

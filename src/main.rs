@@ -36,7 +36,7 @@ async fn main() {
     Err(_) => panic!("Failed to setup database connection"),
   };
 
-  let context = Context::new(db);
+  let context = Context::new(db, settings.clone());
 
   // build our application with a route
   let app = Router::new()

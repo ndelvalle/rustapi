@@ -6,6 +6,7 @@ use axum::{
 use serde::Deserialize;
 
 use crate::context::Context;
+use crate::errors::Error;
 use crate::models::cat::{Cat, PublicCat};
 use crate::models::ModelExt;
 
@@ -27,12 +28,12 @@ struct CreateCat {
 async fn create_cat(
   Extension(context): Extension<Context>,
   Json(payload): Json<CreateCat>,
-) -> Json<PublicCat> {
+) -> Result<Json<PublicCat>, Error> {
   let cat = Cat::new(payload.name);
-  let cat = context.cat.create(cat).await.unwrap();
+  let cat = context.cat.create(cat).await?;
   let res = PublicCat::from(cat);
 
-  Json(res)
+  Ok(Json(res))
 }
 
 async fn query_cats(Extension(_context): Extension<Context>) -> &'static str {

@@ -28,19 +28,16 @@ impl ModelExt for Model {
 }
 
 #[derive(WitherModel, Debug, Clone, Serialize, Deserialize)]
-#[model(
-  index(
-    keys = r#"doc!{ "email": 1 }"#,
-    options = r#"doc!{ "unique": true }"#
-  )
-)]
+#[model(index(keys = r#"doc!{ "email": 1 }"#, options = r#"doc!{ "unique": true }"#))]
 pub struct User {
   #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
   pub id: Option<ObjectId>,
   pub name: String,
   pub email: String,
+  pub password: String,
   pub updated_at: Date,
   pub created_at: Date,
+  pub locked_at: Option<Date>,
 }
 
 impl User {
@@ -49,9 +46,11 @@ impl User {
     Self {
       id: None,
       name,
+      password: String::from("Password1"), // TODO: Create and hash password.
       email,
       updated_at: now,
       created_at: now,
+      locked_at: None,
     }
   }
 }
