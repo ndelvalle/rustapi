@@ -1,6 +1,7 @@
 use bson::serde_helpers::bson_datetime_as_rfc3339_string;
 use bson::serde_helpers::serialize_object_id_as_hex_string;
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 use wither::bson::{doc, oid::ObjectId};
 use wither::Model as WitherModel;
 
@@ -27,7 +28,7 @@ impl ModelExt for Model {
   }
 }
 
-#[derive(WitherModel, Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, WitherModel, Validate)]
 #[model(index(keys = r#"doc!{ "user": 1 }"#))]
 pub struct Cat {
   #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]

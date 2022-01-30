@@ -1,14 +1,14 @@
 use bson::oid::ObjectId;
 use jsonwebtoken::{errors::Error, DecodingKey, EncodingKey, Header, TokenData, Validation};
-use serde::{Deserialize, Serialize};
 use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 
 use crate::models::user::User;
 
 type TokenResult = Result<TokenData<Claims>, Error>;
 
-static VALIDATION: Lazy<Validation> = Lazy::new(|| Validation::default());
-static HEADER: Lazy<Header> = Lazy::new(|| Header::default());
+static VALIDATION: Lazy<Validation> = Lazy::new(Validation::default);
+static HEADER: Lazy<Header> = Lazy::new(Header::default);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenUser {
@@ -22,7 +22,7 @@ impl From<User> for TokenUser {
     Self {
       id: user.id.unwrap(),
       name: user.name.clone(),
-      email: user.email.clone(),
+      email: user.email,
     }
   }
 }

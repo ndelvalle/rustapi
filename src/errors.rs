@@ -1,7 +1,9 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
+use bcrypt::BcryptError;
 use serde_json::json;
+use tokio::task::JoinError;
 use wither::bson;
 use wither::mongodb::error::Error as MongoError;
 use wither::WitherError;
@@ -9,6 +11,9 @@ use wither::WitherError;
 #[derive(thiserror::Error, Debug)]
 #[error("...")]
 pub enum Error {
+  #[error("Failed to read application context")]
+  ReadContext,
+
   #[error("{0}")]
   Wither(#[from] WitherError),
 
@@ -22,13 +27,19 @@ pub enum Error {
   SerializeMongoResponse(#[from] bson::de::Error),
 
   #[error("{0}")]
-  AuthenticateError(#[from] AuthenticateError),
+  Authenticate(#[from] AuthenticateError),
 
   #[error("{0}")]
   BadRequest(#[from] BadRequest),
 
   #[error("{0}")]
   NotFound(#[from] NotFound),
+
+  #[error("{0}")]
+  RunSyncTask(#[from] JoinError),
+
+  #[error("{0}")]
+  HashPassword(#[from] BcryptError),
 }
 
 impl Error {
@@ -49,24 +60,24 @@ impl Error {
       Error::BadRequest(_) => (StatusCode::BAD_REQUEST, 40003),
       Error::NotFound(_) => (StatusCode::NOT_FOUND, 40003),
 
-      Error::AuthenticateError(AuthenticateError::MissingCredentials) => {
-        (StatusCode::BAD_REQUEST, 40003)
-      }
-      Error::AuthenticateError(AuthenticateError::WrongCredentials) => {
+      Error::Authenticate(AuthenticateError::WrongCredentials) => {
         (StatusCode::UNAUTHORIZED, 40003)
       }
-      Error::AuthenticateError(AuthenticateError::InvalidToken) => {
+      Error::Authenticate(AuthenticateError::InvalidToken) => {
         (StatusCode::UNAUTHORIZED, 40003)
       }
-      Error::AuthenticateError(AuthenticateError::Locked) => (StatusCode::LOCKED, 40003),
+      Error::Authenticate(AuthenticateError::Locked) => (StatusCode::LOCKED, 40003),
 
       // 5XX Errors
-      Error::AuthenticateError(AuthenticateError::TokenCreation) => {
-        (StatusCode::INTERNAL_SERVER_ERROR, 40003)
+      Error::ReadContext => (StatusCode::INTERNAL_SERVER_ERROR, 5001),
+      Error::Authenticate(AuthenticateError::TokenCreation) => {
+        (StatusCode::INTERNAL_SERVER_ERROR, 5001)
       }
       Error::Wither(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5001),
       Error::Mongo(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5003),
       Error::SerializeMongoResponse(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5009),
+      Error::RunSyncTask(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5009),
+      Error::HashPassword(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5009),
     }
   }
 }
@@ -84,8 +95,6 @@ impl IntoResponse for Error {
 #[derive(thiserror::Error, Debug)]
 #[error("...")]
 pub enum AuthenticateError {
-  #[error("Missing authentication credentials")]
-  MissingCredentials,
   #[error("Wrong authentication credentials")]
   WrongCredentials,
   #[error("Failed to create authentication token")]
@@ -106,6 +115,14 @@ pub struct BadRequest {
 impl BadRequest {
   pub fn new(field: String, message: String) -> Self {
     BadRequest { field, message }
+  }
+  
+  // TODO: Implement a proper empty Bad Request error
+  pub fn empty() -> Self {
+    BadRequest {
+      field: String::new(),
+      message: String::new(),
+    }
   }
 }
 

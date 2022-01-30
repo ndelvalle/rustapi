@@ -4,6 +4,7 @@ pub mod user;
 use async_trait::async_trait;
 use futures::stream::TryStreamExt;
 use serde::{de::DeserializeOwned, ser::Serialize};
+use validator::Validate;
 use wither::bson::doc;
 use wither::bson::from_bson;
 use wither::bson::Bson;
@@ -19,17 +20,22 @@ use wither::Model as WitherModel;
 use wither::ModelCursor;
 
 use crate::database::Database;
+use crate::errors::BadRequest;
 use crate::errors::Error;
 
 // This is the Model trait. All models that have a MongoDB collection should
 // implement this and therefore inherit theses methods.
 #[async_trait]
 pub trait ModelExt {
-  type T: WitherModel + Send;
+  type T: WitherModel + Send + Validate;
 
   fn get_database(&self) -> &Database;
 
   async fn create(&self, mut model: Self::T) -> Result<Self::T, Error> {
+    model
+      .validate()
+      .map_err(|_error| Error::BadRequest(BadRequest::empty()))?;
+
     let db = self.get_database();
     model.save(&db.conn, None).await.map_err(Error::Wither)?;
 
