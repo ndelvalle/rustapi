@@ -39,11 +39,11 @@ pub struct Cat {
 }
 
 impl Cat {
-  pub fn new(name: String) -> Self {
+  pub fn new(user: ObjectId, name: String) -> Self {
     let now = date::now();
     Self {
       id: None,
-      user: ObjectId::new(), // Temp
+      user,
       name,
       updated_at: now,
       created_at: now,

@@ -64,7 +64,7 @@ async fn authenticate_user(
   }
 
   let secret = context.settings.auth.secret.as_str();
-  let token = token::create_token(user.clone(), secret)
+  let token = token::create(user.clone(), secret)
     .map_err(|_| Error::AuthenticateError(AuthenticateError::TokenCreation))?;
 
   let res = AuthenticateResponse {

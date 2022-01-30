@@ -58,9 +58,7 @@ impl Error {
       Error::AuthenticateError(AuthenticateError::InvalidToken) => {
         (StatusCode::UNAUTHORIZED, 40003)
       }
-      Error::AuthenticateError(AuthenticateError::Locked) => {
-        (StatusCode::LOCKED, 40003)
-      }
+      Error::AuthenticateError(AuthenticateError::Locked) => (StatusCode::LOCKED, 40003),
 
       // 5XX Errors
       Error::AuthenticateError(AuthenticateError::TokenCreation) => {
