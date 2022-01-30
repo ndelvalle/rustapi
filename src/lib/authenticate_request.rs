@@ -23,10 +23,11 @@ where
         .await
         .map_err(|_| AuthenticateError::InvalidToken)?;
 
-    let extensions = req.extensions().unwrap();
-    let context = extensions.get::<Context>().unwrap();
+    let extensions = req.extensions().ok_or(Error::ReadContext)?;
+    let context = extensions.get::<Context>().ok_or(Error::ReadContext)?;
     let secret = context.settings.auth.secret.as_str();
-    let token_data = token::decode(bearer.token(), secret).unwrap();
+    let token_data =
+      token::decode(bearer.token(), secret).map_err(|_| AuthenticateError::InvalidToken)?;
 
     Ok(token_data.claims.user)
   }

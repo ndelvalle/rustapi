@@ -32,7 +32,7 @@ async fn create_cat(
   Json(payload): Json<CreateCat>,
 ) -> Result<Json<PublicCat>, Error> {
   let cat = Cat::new(user.id, payload.name);
-  let cat = context.cat.create(cat).await?;
+  let cat = context.models.cat.create(cat).await?;
   let res = PublicCat::from(cat);
 
   Ok(Json(res))

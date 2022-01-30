@@ -6,10 +6,7 @@ use crate::settings::Settings;
 
 #[derive(Clone)]
 pub struct Context {
-  // Models
-  pub user: UserModel,
-  pub cat: CatModel,
-  // Extras
+  pub models: Models,
   pub settings: Settings,
 }
 
@@ -18,10 +15,14 @@ impl Context {
     let user = UserModel::new(db.clone());
     let cat = CatModel::new(db);
 
-    Self {
-      cat,
-      user,
-      settings,
-    }
+    let models = Models { user, cat };
+
+    Self { models, settings }
   }
+}
+
+#[derive(Clone)]
+pub struct Models {
+  pub user: UserModel,
+  pub cat: CatModel,
 }
