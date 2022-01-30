@@ -7,6 +7,7 @@ use serde::Deserialize;
 
 use crate::context::Context;
 use crate::errors::Error;
+use crate::lib::token::TokenUser;
 use crate::models::cat::{Cat, PublicCat};
 use crate::models::ModelExt;
 
@@ -26,10 +27,11 @@ struct CreateCat {
 }
 
 async fn create_cat(
+  user: TokenUser,
   Extension(context): Extension<Context>,
   Json(payload): Json<CreateCat>,
 ) -> Result<Json<PublicCat>, Error> {
-  let cat = Cat::new(payload.name);
+  let cat = Cat::new(user.id, payload.name);
   let cat = context.cat.create(cat).await?;
   let res = PublicCat::from(cat);
 
