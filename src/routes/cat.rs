@@ -4,6 +4,8 @@ use axum::{
   Json, Router,
 };
 use serde::Deserialize;
+use bson::doc;
+use tracing::debug;
 
 use crate::context::Context;
 use crate::errors::Error;
@@ -38,6 +40,16 @@ async fn create_cat(
   Ok(Json(res))
 }
 
-async fn query_cats(Extension(_context): Extension<Context>) -> &'static str {
-  "Hello, World!"
+async fn query_cats(user: TokenUser, Extension(context): Extension<Context>) -> Result<Json<Vec<PublicCat>>, Error> {
+    let cats = context
+    .models
+    .cat
+    .find(doc! { "user": &user.id }, None)
+    .await?
+    .into_iter()
+    .map(Into::into)
+    .collect::<Vec<PublicCat>>();
+
+    debug!("Returning cats");
+    Ok(Json(cats))
 }

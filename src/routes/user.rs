@@ -76,7 +76,7 @@ async fn authenticate_user(
   };
 
   if !user.is_password_match(password) {
-    debug!("User password is incorrect, returning 401");
+    debug!("User password is incorrect, returning 401 status code");
     return Err(Error::Authenticate(
       AuthenticateError::WrongCredentials,
     ));
