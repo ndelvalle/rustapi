@@ -60,12 +60,8 @@ impl Error {
       Error::BadRequest(_) => (StatusCode::BAD_REQUEST, 40003),
       Error::NotFound(_) => (StatusCode::NOT_FOUND, 40003),
 
-      Error::Authenticate(AuthenticateError::WrongCredentials) => {
-        (StatusCode::UNAUTHORIZED, 40003)
-      }
-      Error::Authenticate(AuthenticateError::InvalidToken) => {
-        (StatusCode::UNAUTHORIZED, 40003)
-      }
+      Error::Authenticate(AuthenticateError::WrongCredentials) => (StatusCode::UNAUTHORIZED, 40003),
+      Error::Authenticate(AuthenticateError::InvalidToken) => (StatusCode::UNAUTHORIZED, 40003),
       Error::Authenticate(AuthenticateError::Locked) => (StatusCode::LOCKED, 40003),
 
       // 5XX Errors
@@ -116,7 +112,7 @@ impl BadRequest {
   pub fn new(field: String, message: String) -> Self {
     BadRequest { field, message }
   }
-  
+
   // TODO: Implement a proper empty Bad Request error
   pub fn empty() -> Self {
     BadRequest {
