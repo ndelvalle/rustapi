@@ -1,6 +1,6 @@
 use axum::{
   extract::{Extension, Path},
-  routing::{get, post, MethodRouter},
+  routing::{get, post},
   Json, Router,
 };
 use bson::doc;
@@ -67,7 +67,7 @@ async fn get_cat_by_id(
     .cat
     .find_one(doc! { "_id": cat_id, "user": &user.id }, None)
     .await?
-    .map(|cat| PublicCat::from(cat));
+    .map(PublicCat::from);
 
   let cat = match cat {
     Some(cat) => cat,

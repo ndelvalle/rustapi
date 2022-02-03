@@ -4,7 +4,7 @@ use http::header;
 use std::net::SocketAddr;
 use tower_http::{
   compression::CompressionLayer, propagate_header::PropagateHeaderLayer,
-  sensitive_headers::SetSensitiveRequestHeadersLayer, trace,
+  sensitive_headers::SetSensitiveHeadersLayer, trace,
 };
 use tracing::info;
 
@@ -42,10 +42,6 @@ async fn main() {
   let app = Router::new()
     .merge(routes::user::create_route())
     .merge(routes::cat::create_route())
-    // Mark the `Authorization` request header as sensitive so it doesn't show in logs
-    .layer(SetSensitiveRequestHeadersLayer::new(std::iter::once(
-      header::AUTHORIZATION,
-    )))
     // High level logging of requests and responses
     .layer(
       trace::TraceLayer::new_for_http()
@@ -53,6 +49,11 @@ async fn main() {
         .on_request(trace::DefaultOnRequest::new().level(tracing::Level::INFO))
         .on_response(trace::DefaultOnResponse::new().level(tracing::Level::INFO)),
     )
+    // Mark the `Authorization` request header as sensitive so it doesn't
+    // show in logs.
+    .layer(SetSensitiveHeadersLayer::new(std::iter::once(
+      header::AUTHORIZATION,
+    )))
     // Compress responses
     .layer(CompressionLayer::new())
     // Propagate `X-Request-Id`s from requests to responses
