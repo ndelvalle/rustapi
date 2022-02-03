@@ -1,26 +1,25 @@
 use axum::{
-  extract::Extension,
+  extract::{Extension, Path},
   routing::{get, post, MethodRouter},
   Json, Router,
 };
-use serde::Deserialize;
 use bson::doc;
+use serde::Deserialize;
 use tracing::debug;
 
 use crate::context::Context;
 use crate::errors::Error;
+use crate::errors::NotFound;
+use crate::lib::to_object_id::to_object_id;
 use crate::lib::token::TokenUser;
 use crate::models::cat::{Cat, PublicCat};
 use crate::models::ModelExt;
 
 pub fn create_route() -> Router {
   Router::new()
-    .merge(route("/cats", post(create_cat)))
-    .merge(route("/cats", get(query_cats)))
-}
-
-fn route(path: &str, method_router: MethodRouter) -> Router {
-  Router::new().route(path, method_router)
+    .route("/cats", post(create_cat))
+    .route("/cats", get(query_cats))
+    .route("/cats/:id", get(get_cat_by_id))
 }
 
 #[derive(Deserialize)]
@@ -40,8 +39,11 @@ async fn create_cat(
   Ok(Json(res))
 }
 
-async fn query_cats(user: TokenUser, Extension(context): Extension<Context>) -> Result<Json<Vec<PublicCat>>, Error> {
-    let cats = context
+async fn query_cats(
+  user: TokenUser,
+  Extension(context): Extension<Context>,
+) -> Result<Json<Vec<PublicCat>>, Error> {
+  let cats = context
     .models
     .cat
     .find(doc! { "user": &user.id }, None)
@@ -50,6 +52,31 @@ async fn query_cats(user: TokenUser, Extension(context): Extension<Context>) -> 
     .map(Into::into)
     .collect::<Vec<PublicCat>>();
 
-    debug!("Returning cats");
-    Ok(Json(cats))
+  debug!("Returning cats");
+  Ok(Json(cats))
+}
+
+async fn get_cat_by_id(
+  user: TokenUser,
+  Extension(context): Extension<Context>,
+  Path(id): Path<String>,
+) -> Result<Json<PublicCat>, Error> {
+  let cat_id = to_object_id(id)?;
+  let cat = context
+    .models
+    .cat
+    .find_one(doc! { "_id": cat_id, "user": &user.id }, None)
+    .await?
+    .map(|cat| PublicCat::from(cat));
+
+  let cat = match cat {
+    Some(cat) => cat,
+    None => {
+      debug!("Cat not found, returning 404 status code");
+      return Err(Error::NotFound(NotFound::new(String::from("cat"))));
+    }
+  };
+
+  debug!("Returning cat");
+  Ok(Json(cat))
 }
