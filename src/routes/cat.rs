@@ -1,6 +1,6 @@
 use axum::{
   extract::{Extension, Path},
-  routing::{get, post},
+  routing::{delete, get, post},
   Json, Router,
 };
 use bson::doc;
@@ -20,6 +20,7 @@ pub fn create_route() -> Router {
     .route("/cats", post(create_cat))
     .route("/cats", get(query_cats))
     .route("/cats/:id", get(get_cat_by_id))
+    .route("/cats/:id", delete(delete_cat_by_id))
 }
 
 #[derive(Deserialize)]
@@ -79,4 +80,24 @@ async fn get_cat_by_id(
 
   debug!("Returning cat");
   Ok(Json(cat))
+}
+
+async fn delete_cat_by_id(
+  user: TokenUser,
+  Extension(context): Extension<Context>,
+  Path(id): Path<String>,
+) -> Result<(), Error> {
+  let cat_id = to_object_id(id)?;
+  let delete_result = context
+    .models
+    .cat
+    .delete_one(doc! { "_id": cat_id, "user": &user.id })
+    .await?;
+
+  if delete_result.deleted_count == 0 {
+    debug!("Cat not found, returning 404 status code");
+    return Err(Error::NotFound(NotFound::new(String::from("cat"))));
+  }
+
+  Ok(())
 }
