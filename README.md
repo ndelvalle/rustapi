@@ -10,6 +10,10 @@ database and [Axum](https://github.com/tokio-rs/axum) HTTP framework.
 - [Rust](https://www.rust-lang.org/tools/install)
 - [MongoDB](https://docs.mongodb.com/manual/installation/)
 
+### How to
+
+To use this template as your project starting point, click "Use this template" at the top of this page, or click [here](https://github.com/ndelvalle/rustapi/generate).
+
 
 ### Project structure
 
