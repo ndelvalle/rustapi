@@ -1,10 +1,10 @@
 use axum::{
   extract::{Extension, Path},
-  routing::{delete, get, post},
+  routing::{delete, get, post, put},
   Json, Router,
 };
 use bson::doc;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::context::Context;
@@ -20,12 +20,8 @@ pub fn create_route() -> Router {
     .route("/cats", post(create_cat))
     .route("/cats", get(query_cats))
     .route("/cats/:id", get(get_cat_by_id))
-    .route("/cats/:id", delete(delete_cat_by_id))
-}
-
-#[derive(Deserialize)]
-struct CreateCat {
-  name: String,
+    .route("/cats/:id", delete(remove_cat_by_id))
+    .route("/cats/:id", put(update_cat_by_id))
 }
 
 async fn create_cat(
@@ -82,7 +78,7 @@ async fn get_cat_by_id(
   Ok(Json(cat))
 }
 
-async fn delete_cat_by_id(
+async fn remove_cat_by_id(
   user: TokenUser,
   Extension(context): Extension<Context>,
   Path(id): Path<String>,
@@ -100,4 +96,45 @@ async fn delete_cat_by_id(
   }
 
   Ok(())
+}
+
+async fn update_cat_by_id(
+  user: TokenUser,
+  Extension(context): Extension<Context>,
+  Path(id): Path<String>,
+  Json(payload): Json<UpdateCat>,
+) -> Result<Json<PublicCat>, Error> {
+  let cat_id = to_object_id(id)?;
+  let update = bson::to_document(&payload).unwrap();
+
+  let cat = context
+    .models
+    .cat
+    .find_one_and_update(
+      doc! { "_id": &cat_id, "user": &user.id },
+      doc! { "$set": update },
+    )
+    .await?
+    .map(PublicCat::from);
+
+  let cat = match cat {
+    Some(cat) => cat,
+    None => {
+      debug!("Cat not found, returning 404 status code");
+      return Err(Error::NotFound(NotFound::new(String::from("cat"))));
+    }
+  };
+
+  debug!("Returning cat");
+  Ok(Json(cat))
+}
+
+#[derive(Deserialize)]
+struct CreateCat {
+  name: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct UpdateCat {
+  name: String,
 }

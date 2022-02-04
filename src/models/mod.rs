@@ -13,6 +13,7 @@ use wither::bson::{self, oid::ObjectId};
 use wither::mongodb::options::FindOneAndUpdateOptions;
 use wither::mongodb::options::FindOneOptions;
 use wither::mongodb::options::FindOptions;
+use wither::mongodb::options::ReturnDocument;
 use wither::mongodb::options::UpdateOptions;
 use wither::mongodb::results::DeleteResult;
 use wither::mongodb::results::UpdateResult;
@@ -89,9 +90,13 @@ pub trait ModelExt {
     &self,
     query: Document,
     update: Document,
-    options: Option<FindOneAndUpdateOptions>,
   ) -> Result<Option<Self::T>, Error> {
     let db = self.get_database();
+
+    let options = FindOneAndUpdateOptions::builder()
+      .return_document(ReturnDocument::After)
+      .build();
+
     Self::T::find_one_and_update(&db.conn, query, update, options)
       .await
       .map_err(Error::Wither)
