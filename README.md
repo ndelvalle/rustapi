@@ -14,6 +14,14 @@ database and [Axum](https://github.com/tokio-rs/axum) HTTP framework.
 
 To use this template as your project starting point, click "Use this template" at the top of this page, or click [here](https://github.com/ndelvalle/rustapi/generate).
 
+### Some goodies
+
+* Authentication. Based on [jsonwebtoken](https://github.com/Keats/jsonwebtoken)
+* Layered configuration system. Based one [config-rs](https://github.com/mehcode/config-rs)
+* Logs. Based on [tracing](https://github.com/tokio-rs/tracing)
+* Error handling
+* CI Jobs based on Github actions
+* Dependabot configuration
 
 ### Project structure
 
