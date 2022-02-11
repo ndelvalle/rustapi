@@ -1,8 +1,4 @@
-use axum::{
-  extract::Extension,
-  routing::{post, MethodRouter},
-  Json, Router,
-};
+use axum::{extract::Extension, routing::post, Json, Router};
 use bson::doc;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
@@ -18,12 +14,8 @@ use crate::models::ModelExt;
 
 pub fn create_route() -> Router {
   Router::new()
-    .merge(route("/users", post(create_user)))
-    .merge(route("/users/authenticate", post(authenticate_user)))
-}
-
-fn route(path: &str, method_router: MethodRouter) -> Router {
-  Router::new().route(path, method_router)
+    .route("/users", post(create_user))
+    .route("/users/authenticate", post(authenticate_user))
 }
 
 async fn create_user(

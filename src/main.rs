@@ -38,7 +38,6 @@ async fn main() {
 
   let context = Context::new(db, settings.clone());
 
-  // build our application with a route
   let app = Router::new()
     .merge(routes::user::create_route())
     .merge(routes::cat::create_route())
