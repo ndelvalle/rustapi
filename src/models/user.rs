@@ -77,13 +77,13 @@ pub struct PublicUser {
 }
 
 impl From<User> for PublicUser {
-  fn from(cat: User) -> Self {
+  fn from(user: User) -> Self {
     Self {
-      id: cat.id.unwrap(),
-      name: cat.name.clone(),
-      email: cat.email.clone(),
-      updated_at: cat.updated_at,
-      created_at: cat.created_at,
+      id: user.id.unwrap(),
+      name: user.name.clone(),
+      email: user.email.clone(),
+      updated_at: user.updated_at,
+      created_at: user.created_at,
     }
   }
 }
