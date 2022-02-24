@@ -1,4 +1,4 @@
-use config::{Config, ConfigError, File, Environment};
+use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::{env, fmt};
 
