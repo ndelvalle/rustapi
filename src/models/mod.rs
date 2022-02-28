@@ -50,22 +50,20 @@ pub trait ModelExt {
       .map_err(Error::Wither)
   }
 
-  async fn find_one(
-    &self,
-    query: Document,
-    options: Option<FindOneOptions>,
-  ) -> Result<Option<Self::T>, Error> {
+  async fn find_one<O>(&self, query: Document, options: O) -> Result<Option<Self::T>, Error>
+  where
+    O: Into<Option<FindOneOptions>> + Send,
+  {
     let db = self.get_database();
     Self::T::find_one(&db.conn, query, options)
       .await
       .map_err(Error::Wither)
   }
 
-  async fn find(
-    &self,
-    query: Document,
-    options: Option<FindOptions>,
-  ) -> Result<Vec<Self::T>, Error> {
+  async fn find<O>(&self, query: Document, options: O) -> Result<Vec<Self::T>, Error>
+  where
+    O: Into<Option<FindOptions>> + Send,
+  {
     let db = self.get_database();
     Self::T::find(&db.conn, query, options)
       .await
@@ -75,11 +73,10 @@ pub trait ModelExt {
       .map_err(Error::Wither)
   }
 
-  async fn cursor(
-    &self,
-    query: Document,
-    options: Option<FindOptions>,
-  ) -> Result<ModelCursor<Self::T>, Error> {
+  async fn cursor<O>(&self, query: Document, options: O) -> Result<ModelCursor<Self::T>, Error>
+  where
+    O: Into<Option<FindOptions>> + Send,
+  {
     let db = self.get_database();
     Self::T::find(&db.conn, query, options)
       .await
@@ -92,7 +89,6 @@ pub trait ModelExt {
     update: Document,
   ) -> Result<Option<Self::T>, Error> {
     let db = self.get_database();
-
     let options = FindOneAndUpdateOptions::builder()
       .return_document(ReturnDocument::After)
       .build();
@@ -102,12 +98,15 @@ pub trait ModelExt {
       .map_err(Error::Wither)
   }
 
-  async fn update_one(
+  async fn update_one<O>(
     &self,
     query: Document,
     update: Document,
-    options: Option<UpdateOptions>,
-  ) -> Result<UpdateResult, Error> {
+    options: O,
+  ) -> Result<UpdateResult, Error>
+  where
+    O: Into<Option<UpdateOptions>> + Send,
+  {
     let db = self.get_database();
     Self::T::collection(&db.conn)
       .update_one(query, update, options)
@@ -115,12 +114,15 @@ pub trait ModelExt {
       .map_err(Error::Mongo)
   }
 
-  async fn update_many(
+  async fn update_many<O>(
     &self,
     query: Document,
     update: Document,
-    options: Option<UpdateOptions>,
-  ) -> Result<UpdateResult, Error> {
+    options: O,
+  ) -> Result<UpdateResult, Error>
+  where
+    O: Into<Option<UpdateOptions>> + Send,
+  {
     let db = self.get_database();
     Self::T::collection(&db.conn)
       .update_many(query, update, options)
