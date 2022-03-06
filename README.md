@@ -14,7 +14,7 @@ database and [Axum](https://github.com/tokio-rs/axum) HTTP framework.
 
 To use this template as your project starting point, click "Use this template" at the top of this page, or click [here](https://github.com/ndelvalle/rustapi/generate).
 
-### Some goodies
+### Features
 
 * Authentication. Based on [jsonwebtoken](https://github.com/Keats/jsonwebtoken)
 * Layered configuration system. Based one [config-rs](https://github.com/mehcode/config-rs)
@@ -26,7 +26,6 @@ To use this template as your project starting point, click "Use this template" a
 ### Project structure
 
 ```bash
-├── Cargo.lock
 ├── Cargo.toml
 ├── README.md
 ├── config
@@ -37,10 +36,12 @@ To use this template as your project starting point, click "Use this template" a
     ├── context.rs      # Shared state and functionality across the APP
     ├── database.rs
     ├── errors.rs
-    ├── lib             # Custom helpers not related to the business model
+    ├── lib             # Helpers not related to the business model
     │   ├── authenticate_request.rs
     │   ├── date.rs
     │   ├── mod.rs
+    │   ├── models.rs   # Base Database Model trait
+    │   ├── to_object_id.rs
     │   └── token.rs
     ├── logger.rs
     ├── main.rs
