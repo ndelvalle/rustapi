@@ -1,4 +1,4 @@
-use axum::AddExtensionLayer;
+use axum::extract::Extension;
 use axum::Router;
 use http::header;
 use std::net::SocketAddr;
@@ -59,7 +59,7 @@ async fn main() {
     .layer(PropagateHeaderLayer::new(header::HeaderName::from_static(
       "x-request-id",
     )))
-    .layer(AddExtensionLayer::new(context));
+    .layer(Extension(context));
 
   let port = settings.server.port;
   let address = SocketAddr::from(([127, 0, 0, 1], port));
