@@ -7,10 +7,10 @@ use crate::context::Context;
 use crate::errors::BadRequest;
 use crate::errors::NotFound;
 use crate::errors::{AuthenticateError, Error};
+use crate::lib::models::ModelExt;
 use crate::lib::token;
 use crate::models::user;
 use crate::models::user::{PublicUser, User};
-use crate::models::ModelExt;
 
 pub fn create_route() -> Router {
   Router::new()

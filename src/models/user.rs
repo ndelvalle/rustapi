@@ -10,7 +10,7 @@ use crate::database::Database;
 use crate::errors::Error;
 use crate::lib::date;
 use crate::lib::date::Date;
-use crate::models::ModelExt;
+use crate::lib::models::ModelExt;
 
 #[derive(Clone)]
 pub struct Model {
