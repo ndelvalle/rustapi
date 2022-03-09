@@ -19,7 +19,9 @@ mod settings;
 
 use context::Context;
 use database::Database;
+use errors::Error;
 use logger::Logger;
+use models::Models;
 use settings::Settings;
 
 #[tokio::main]
@@ -36,7 +38,12 @@ async fn main() {
     Err(_) => panic!("Failed to setup database connection"),
   };
 
-  let context = Context::new(db, settings.clone());
+  let models = match Models::setup(db.clone()).await {
+    Ok(value) => value,
+    Err(err) => panic!("Failed to setup models {}", err),
+  };
+
+  let context = Context::new(models, settings.clone());
 
   let app = Router::new()
     .merge(routes::user::create_route())
