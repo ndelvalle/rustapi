@@ -23,7 +23,7 @@ where
         .await
         .map_err(|_| AuthenticateError::InvalidToken)?;
 
-    let extensions = req.extensions().ok_or(Error::ReadContext)?;
+    let extensions = req.extensions();
     let context = extensions.get::<Context>().ok_or(Error::ReadContext)?;
     let secret = context.settings.auth.secret.as_str();
     let token_data =
