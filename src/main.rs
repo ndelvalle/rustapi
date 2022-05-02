@@ -18,10 +18,7 @@ mod routes;
 mod settings;
 
 use context::Context;
-use database::Database;
 use errors::Error;
-use logger::Logger;
-use models::Models;
 use settings::Settings;
 
 #[tokio::main]
@@ -31,19 +28,17 @@ async fn main() {
     Err(err) => panic!("Failed to setup configuration. Error: {}", err),
   };
 
-  Logger::setup(&settings);
+  logger::setup(&settings);
 
-  let db = match Database::setup(&settings).await {
-    Ok(value) => value,
-    Err(_) => panic!("Failed to setup database connection"),
-  };
+  database::setup(&settings)
+    .await
+    .expect("Failed to setup database connection");
 
-  let models = match Models::setup(db.clone()).await {
-    Ok(value) => value,
-    Err(err) => panic!("Failed to setup models {}", err),
-  };
+  models::sync_indexes()
+    .await
+    .expect("Failed to sync database indexes");
 
-  let context = Context::new(models, settings.clone());
+  let context = Context::new(settings.clone());
 
   let app = Router::new()
     .merge(routes::user::create_route())
