@@ -1,6 +1,20 @@
 use config::{Config, ConfigError, Environment, File};
+use lazy_static::lazy_static;
 use serde::Deserialize;
 use std::{env, fmt};
+
+lazy_static! {
+  static ref SETTINGS: Settings = {
+    match Settings::new() {
+      Ok(settings) => settings,
+      Err(err) => panic!("Failed to setup settings: {}", err),
+    }
+  };
+}
+
+pub fn get_settings() -> &'static Settings {
+  &SETTINGS
+}
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Server {

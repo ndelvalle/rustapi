@@ -4,11 +4,11 @@ use axum::{
   headers::{authorization::Bearer, Authorization},
 };
 
-use crate::context::Context;
 use crate::errors::AuthenticateError;
 use crate::errors::Error;
 use crate::lib::token;
 use crate::lib::token::TokenUser;
+use crate::settings::get_settings;
 
 #[async_trait]
 impl<B> FromRequest<B> for TokenUser
@@ -23,9 +23,8 @@ where
         .await
         .map_err(|_| AuthenticateError::InvalidToken)?;
 
-    let extensions = req.extensions();
-    let context = extensions.get::<Context>().ok_or(Error::ReadContext)?;
-    let secret = context.settings.auth.secret.as_str();
+    let settings = get_settings();
+    let secret = settings.auth.secret.as_str();
     let token_data =
       token::decode(bearer.token(), secret).map_err(|_| AuthenticateError::InvalidToken)?;
 

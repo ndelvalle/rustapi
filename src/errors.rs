@@ -11,9 +11,6 @@ use wither::WitherError;
 #[derive(thiserror::Error, Debug)]
 #[error("...")]
 pub enum Error {
-  #[error("Failed to read application context")]
-  ReadContext,
-
   #[error("{0}")]
   Wither(#[from] WitherError),
 
@@ -65,7 +62,6 @@ impl Error {
       Error::Authenticate(AuthenticateError::Locked) => (StatusCode::LOCKED, 40003),
 
       // 5XX Errors
-      Error::ReadContext => (StatusCode::INTERNAL_SERVER_ERROR, 5001),
       Error::Authenticate(AuthenticateError::TokenCreation) => {
         (StatusCode::INTERNAL_SERVER_ERROR, 5001)
       }

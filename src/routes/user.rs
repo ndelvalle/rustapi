@@ -11,6 +11,7 @@ use crate::lib::models::ModelExt;
 use crate::lib::token;
 use crate::models::user;
 use crate::models::user::{PublicUser, User};
+use crate::settings::get_settings;
 
 pub fn create_route() -> Router {
   Router::new()
@@ -77,7 +78,8 @@ async fn authenticate_user(
     return Err(Error::Authenticate(AuthenticateError::Locked));
   }
 
-  let secret = context.settings.auth.secret.as_str();
+  let settings = get_settings();
+  let secret = settings.auth.secret.as_str();
   let token = token::create(user.clone(), secret)
     .map_err(|_| Error::Authenticate(AuthenticateError::TokenCreation))?;
 
