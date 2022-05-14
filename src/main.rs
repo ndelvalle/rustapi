@@ -22,18 +22,14 @@ use database::Database;
 use errors::Error;
 use logger::Logger;
 use models::Models;
-use settings::Settings;
+
+use crate::settings::get_settings;
 
 #[tokio::main]
 async fn main() {
-  let settings = match Settings::new() {
-    Ok(value) => value,
-    Err(err) => panic!("Failed to setup configuration. Error: {}", err),
-  };
+  Logger::setup();
 
-  Logger::setup(&settings);
-
-  let db = match Database::setup(&settings).await {
+  let db = match Database::setup().await {
     Ok(value) => value,
     Err(_) => panic!("Failed to setup database connection"),
   };
@@ -43,7 +39,7 @@ async fn main() {
     Err(err) => panic!("Failed to setup models {}", err),
   };
 
-  let context = Context::new(models, settings.clone());
+  let context = Context::new(models);
 
   let app = Router::new()
     .merge(routes::user::create_route())
@@ -68,6 +64,7 @@ async fn main() {
     )))
     .layer(Extension(context));
 
+  let settings = get_settings();
   let port = settings.server.port;
   let address = SocketAddr::from(([127, 0, 0, 1], port));
 

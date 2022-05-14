@@ -1,6 +1,6 @@
 use wither::mongodb;
 
-use crate::settings::Settings;
+use crate::settings::get_settings;
 
 #[derive(Clone)]
 pub struct Database {
@@ -8,7 +8,8 @@ pub struct Database {
 }
 
 impl Database {
-  pub async fn setup(settings: &Settings) -> Result<Self, mongodb::error::Error> {
+  pub async fn setup() -> Result<Self, mongodb::error::Error> {
+    let settings = get_settings();
     let db_uri = settings.database.uri.as_str();
     let db_name = settings.database.name.as_str();
     let connection = mongodb::Client::with_uri_str(db_uri)
