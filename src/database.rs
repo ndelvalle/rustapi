@@ -4,6 +4,8 @@ use wither::mongodb;
 
 use crate::settings::Settings;
 
+// The Rust compiler is allowed to assume that the value a shared reference
+// points to will not change while that reference lives.
 static mut GLOBAL_CONNECTION: Option<MongoDatabase> = None;
 
 pub async fn setup(settings: &Settings) -> Result<(), MongoError> {
