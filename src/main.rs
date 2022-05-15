@@ -20,14 +20,13 @@ mod settings;
 use context::Context;
 use database::Database;
 use errors::Error;
-use logger::Logger;
 use models::Models;
 
 use crate::settings::get_settings;
 
 #[tokio::main]
 async fn main() {
-  Logger::setup();
+  logger::setup();
 
   let db = match Database::setup().await {
     Ok(value) => value,
