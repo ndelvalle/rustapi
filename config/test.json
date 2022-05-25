@@ -1,0 +1,11 @@
+{
+  "environment": "test",
+
+  "server": {
+    "port": 8088
+  },
+
+  "logger": {
+    "level": "error"
+  }
+}

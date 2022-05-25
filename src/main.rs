@@ -17,6 +17,9 @@ mod models;
 mod routes;
 mod settings;
 
+#[cfg(test)]
+mod tests;
+
 use context::Context;
 use database::Database;
 use errors::Error;
@@ -26,6 +29,20 @@ use crate::settings::get_settings;
 
 #[tokio::main]
 async fn main() {
+  let app = create_app().await;
+  let settings = get_settings();
+  let port = settings.server.port;
+  let address = SocketAddr::from(([127, 0, 0, 1], port));
+
+  info!("listening on {}", &address);
+
+  axum::Server::bind(&address)
+    .serve(app.into_make_service())
+    .await
+    .expect("Failed to start server");
+}
+
+pub async fn create_app() -> Router {
   logger::setup();
 
   let db = match Database::setup().await {
@@ -40,7 +57,8 @@ async fn main() {
 
   let context = Context::new(models);
 
-  let app = Router::new()
+  Router::new()
+    .merge(routes::status::create_route())
     .merge(routes::user::create_route())
     .merge(routes::cat::create_route())
     // High level logging of requests and responses
@@ -61,16 +79,5 @@ async fn main() {
     .layer(PropagateHeaderLayer::new(header::HeaderName::from_static(
       "x-request-id",
     )))
-    .layer(Extension(context));
-
-  let settings = get_settings();
-  let port = settings.server.port;
-  let address = SocketAddr::from(([127, 0, 0, 1], port));
-
-  info!("listening on {}", &address);
-
-  axum::Server::bind(&address)
-    .serve(app.into_make_service())
-    .await
-    .expect("Failed to start server");
+    .layer(Extension(context))
 }
