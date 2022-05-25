@@ -1,9 +1,8 @@
-use axum::{extract::Extension, routing::post, Json, Router};
+use axum::{routing::post, Json, Router};
 use bson::doc;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-use crate::context::Context;
 use crate::errors::BadRequest;
 use crate::errors::NotFound;
 use crate::errors::{AuthenticateError, Error};
@@ -19,20 +18,16 @@ pub fn create_route() -> Router {
     .route("/users/authenticate", post(authenticate_user))
 }
 
-async fn create_user(
-  Extension(context): Extension<Context>,
-  Json(body): Json<CreateBody>,
-) -> Result<Json<PublicUser>, Error> {
+async fn create_user(Json(body): Json<CreateBody>) -> Result<Json<PublicUser>, Error> {
   let password_hash = user::hash_password(body.password).await?;
   let user = User::new(body.name, body.email, password_hash);
-  let user = context.models.user.create(user).await?;
+  let user = User::create(user).await?;
   let res = PublicUser::from(user);
 
   Ok(Json(res))
 }
 
 async fn authenticate_user(
-  Extension(context): Extension<Context>,
   Json(body): Json<AuthorizeBody>,
 ) -> Result<Json<AuthenticateResponse>, Error> {
   let email = &body.email;
@@ -54,11 +49,7 @@ async fn authenticate_user(
     )));
   }
 
-  let user = context
-    .models
-    .user
-    .find_one(doc! { "email": email }, None)
-    .await?;
+  let user = User::find_one(doc! { "email": email }, None).await?;
 
   let user = match user {
     Some(user) => user,

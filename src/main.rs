@@ -1,4 +1,3 @@
-use axum::extract::Extension;
 use axum::Router;
 use http::header;
 use std::net::SocketAddr;
@@ -8,7 +7,6 @@ use tower_http::{
 };
 use tracing::info;
 
-mod context;
 mod database;
 mod errors;
 mod lib;
@@ -20,12 +18,8 @@ mod settings;
 #[cfg(test)]
 mod tests;
 
-use context::Context;
-use database::Database;
 use errors::Error;
-use models::Models;
-
-use crate::settings::get_settings;
+use settings::get_settings;
 
 #[tokio::main]
 async fn main() {
@@ -45,17 +39,13 @@ async fn main() {
 pub async fn create_app() -> Router {
   logger::setup();
 
-  let db = match Database::setup().await {
-    Ok(value) => value,
-    Err(_) => panic!("Failed to setup database connection"),
-  };
+  database::setup()
+    .await
+    .expect("Failed to setup database connection");
 
-  let models = match Models::setup(db.clone()).await {
-    Ok(value) => value,
-    Err(err) => panic!("Failed to setup models {}", err),
-  };
-
-  let context = Context::new(models);
+  models::sync_indexes()
+    .await
+    .expect("Failed to sync database indexes");
 
   Router::new()
     .merge(routes::status::create_route())
@@ -79,5 +69,4 @@ pub async fn create_app() -> Router {
     .layer(PropagateHeaderLayer::new(header::HeaderName::from_static(
       "x-request-id",
     )))
-    .layer(Extension(context))
 }

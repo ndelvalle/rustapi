@@ -6,28 +6,13 @@ use validator::Validate;
 use wither::bson::{doc, oid::ObjectId};
 use wither::Model as WitherModel;
 
-use crate::database::Database;
 use crate::errors::Error;
 use crate::lib::date;
 use crate::lib::date::Date;
 use crate::lib::models::ModelExt;
 
-#[derive(Clone)]
-pub struct Model {
-  pub db: Database,
-}
-
-impl Model {
-  pub fn new(db: Database) -> Self {
-    Self { db }
-  }
-}
-
-impl ModelExt for Model {
+impl ModelExt for User {
   type T = User;
-  fn get_database(&self) -> &Database {
-    &self.db
-  }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, WitherModel, Validate)]
