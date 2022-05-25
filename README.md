@@ -1,6 +1,6 @@
 # rustapi
 
-[![CI](https://github.com/ndelvalle/rustapi/actions/workflows/ci.yml/badge.svg)](https://github.com/ndelvalle/rustapi/actions/workflows/ci.yml)
+[![Tests](https://github.com/ndelvalle/rustapi/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ndelvalle/rustapi/actions/workflows/ci.yml)
 
 RESTful API template built with Rust lang. It uses [MongoDB](https://docs.mongodb.com/)
 database and [Axum](https://github.com/tokio-rs/axum) HTTP framework.
