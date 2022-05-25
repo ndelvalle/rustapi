@@ -6,11 +6,11 @@ use crate::settings::get_settings;
 
 // The Rust compiler is allowed to assume that the value a shared reference
 // points to will not change while that reference lives.
-static mut GLOBAL_CONNECTION: Option<MongoDatabase> = None;
+static mut CONNECTION: Option<MongoDatabase> = None;
 
 pub async fn setup() -> Result<(), MongoError> {
   unsafe {
-    if GLOBAL_CONNECTION.is_some() {
+    if CONNECTION.is_some() {
       panic!("Database already initialized");
     }
   };
@@ -23,7 +23,7 @@ pub async fn setup() -> Result<(), MongoError> {
     .database(db_name);
 
   unsafe {
-    GLOBAL_CONNECTION = Some(connection);
+    CONNECTION = Some(connection);
   };
 
   Ok(())
@@ -31,7 +31,7 @@ pub async fn setup() -> Result<(), MongoError> {
 
 pub fn get_connection() -> &'static MongoDatabase {
   unsafe {
-    GLOBAL_CONNECTION
+    CONNECTION
       .as_ref()
       .expect("Database connection not initialized")
   }
