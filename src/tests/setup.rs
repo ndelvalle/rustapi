@@ -46,7 +46,7 @@ async fn wait_for_app_to_start() -> Result<(), &'static str> {
     if started {
       return Ok(());
     }
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_secs(1)).await;
   }
 
   Err("Could not connect to APP")
