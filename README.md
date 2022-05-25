@@ -17,7 +17,7 @@ To use this template as your project starting point, click "Use this template" a
 ### Features
 
 * Authentication. Based on [jsonwebtoken](https://github.com/Keats/jsonwebtoken)
-* Layered configuration system. Based one [config-rs](https://github.com/mehcode/config-rs)
+* Layered configuration system. Based on [config-rs](https://github.com/mehcode/config-rs)
 * Logs. Based on [tracing](https://github.com/tokio-rs/tracing)
 * Error handling
 * CI Jobs based on Github actions
