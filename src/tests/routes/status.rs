@@ -7,11 +7,6 @@ use serde_json::Value as Json;
 use crate::tests::setup::setup;
 
 #[tokio::test]
-async fn sara() {
-  assert_eq!(1, 1);
-}
-
-#[tokio::test]
 async fn request_to_status_route() {
   setup().await.unwrap();
 
