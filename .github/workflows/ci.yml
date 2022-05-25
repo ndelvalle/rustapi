@@ -20,6 +20,11 @@ jobs:
           override: true
           components: rustfmt, clippy
 
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: 5.0
+
       - uses: actions/cache@v2
         with:
           path: |
