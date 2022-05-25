@@ -1,19 +1,23 @@
 use mongodb::error::Error as MongoError;
 use mongodb::Database as MongoDatabase;
+use std::sync::atomic::{AtomicBool, Ordering};
 use wither::mongodb;
 
 use crate::settings::get_settings;
 
 // The Rust compiler is allowed to assume that the value a shared reference
-// points to will not change while that reference lives.
+// points to will not change while that reference lives. CONNECTION is unsafely
+// mutated only once on the setup function (This function is called only once).
 static mut CONNECTION: Option<MongoDatabase> = None;
+static IS_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub async fn setup() -> Result<(), MongoError> {
-  unsafe {
-    if CONNECTION.is_some() {
-      panic!("Database already initialized");
-    }
-  };
+  let exchange = IS_INITIALIZED.compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed);
+  let can_setup = exchange == Ok(false);
+
+  if !can_setup {
+    panic!("Database already initialized");
+  }
 
   let settings = get_settings();
   let db_uri = settings.database.uri.as_str();
