@@ -21,6 +21,7 @@ To use this template as your project starting point, click "Use this template" a
 * Logs. Based on [tracing](https://github.com/tokio-rs/tracing)
 * Error handling
 * CI Jobs based on Github actions
+* E2E Tests
 * Dependabot configuration
 
 ### Project structure
