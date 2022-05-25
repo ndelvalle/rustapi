@@ -1,12 +1,9 @@
-name: CI
+name: Tests
+
+on: [push]
 
 env:
   CARGO_TERM_COLOR: always
-
-on:
-  pull_request:
-    branches:
-      - master
 
 jobs:
   build:
