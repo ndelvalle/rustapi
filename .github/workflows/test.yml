@@ -51,4 +51,5 @@ jobs:
           args: -- -D warnings
 
       - name: Run tests
-        run: test.sh
+        run: ./test
+        shell: bash
