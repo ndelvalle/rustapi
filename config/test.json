@@ -5,6 +5,11 @@
     "port": 8088
   },
 
+  "database": {
+    "uri": "mongodb://localhost:27017",
+    "name": "rustapi-test"
+  },
+
   "logger": {
     "level": "error"
   }

@@ -83,7 +83,7 @@ async fn authenticate_user(
 }
 
 // TODO: Validate password length
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct CreateBody {
   name: String,
   email: String,

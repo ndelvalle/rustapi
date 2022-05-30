@@ -4,23 +4,23 @@ use reqwest::StatusCode;
 use serde_json::json;
 use serde_json::Value as Json;
 
-use crate::tests::setup::setup;
+use crate::tests::setup::with_app;
 
-#[tokio::test]
-async fn request_to_status_route() {
-  setup().await.unwrap();
+#[test]
+fn get_status_route() {
+  with_app(async {
+    let res = reqwest::get("http://localhost:8088/status").await.unwrap();
+    let status_code = res.status();
+    let body = res.json::<Json>().await.unwrap();
 
-  let res = reqwest::get("http://localhost:8088/status").await.unwrap();
-  let status_code = res.status();
-  let body = res.json::<Json>().await.unwrap();
+    // Status code:
+    let actual = status_code;
+    let expected = StatusCode::OK;
+    assert_eq!(actual, expected);
 
-  // Status code:
-  let actual = status_code;
-  let expected = StatusCode::OK;
-  assert_eq!(actual, expected);
-
-  // Body:
-  let actual = body;
-  let expected = json!({ "status": "ok" });
-  assert_json_eq!(actual, expected);
+    // Body:
+    let actual = body;
+    let expected = json!({ "status": "ok" });
+    assert_json_eq!(actual, expected);
+  });
 }
