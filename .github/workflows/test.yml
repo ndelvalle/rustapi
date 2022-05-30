@@ -1,4 +1,4 @@
-name: Tests
+name: Test
 
 on: [push]
 
@@ -50,7 +50,5 @@ jobs:
           command: clippy
           args: -- -D warnings
 
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+      - name: Run tests
+        run: ./test
