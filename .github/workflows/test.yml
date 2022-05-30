@@ -51,4 +51,5 @@ jobs:
           args: -- -D warnings
 
       - name: Run tests
-        run: ./test
+        uses: actions/checkout@v2
+        run: ./test.sh
