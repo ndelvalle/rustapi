@@ -97,7 +97,7 @@ struct AuthorizeBody {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AuthenticateResponse {
-  pub access_token: String,
-  pub user: PublicUser,
+struct AuthenticateResponse {
+  access_token: String,
+  user: PublicUser,
 }
