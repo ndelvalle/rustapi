@@ -16,13 +16,13 @@ lazy_static! {
   static ref RUNTIME: Runtime = Runtime::new().expect("Should create a tokio runtime");
 }
 
-/// Use the created static tokio runtime to start the APP, wait for the server
-/// to listen on the specified port, run tests and then clean up the database.
-/// Tokio test runtime (tokio::test) is not used to avoid starting the app again
-/// on each test. Arguably this would be a better approach, but this API is
-/// statless, so there is no point on starting a new instance on each test.
-/// Make sure to run tests sequentially (cargo test -- --test-threads=1) to
-/// avoid inconsistency with the Database.
+/// Use the static tokio runtime to start the APP, wait for the server to listen
+/// on the specified port, run tests and then clean up the database. Tokio test
+/// runtime (tokio::test) is not used to avoid starting the app again on each
+/// test. Arguably this would be a better approach, but this API is statless
+/// (Without considering the database), so there is no point on starting a new
+/// instance on each test. Make sure to run tests sequentially (cargo test --
+/// --test-threads=1) to avoid inconsistency with the Database.
 /// Read more: https://github.com/tokio-rs/tokio/issues/2374
 pub fn with_app<F>(test: F) -> F::Output
 where
@@ -37,9 +37,8 @@ where
       wait_for_app_to_start().await.unwrap();
     }
 
-    let res = test.await;
     cleanup_database().await;
-    res
+    test.await
   })
 }
 

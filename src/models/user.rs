@@ -31,13 +31,18 @@ pub struct User {
 }
 
 impl User {
-  pub fn new(name: String, email: String, password_hash: String) -> Self {
+  pub fn new<A, B, C>(name: A, email: B, password_hash: C) -> Self
+  where
+    A: Into<String>,
+    B: Into<String>,
+    C: Into<String>,
+  {
     let now = date::now();
     Self {
       id: None,
-      name,
-      email,
-      password: password_hash,
+      name: name.into(),
+      email: email.into(),
+      password: password_hash.into(),
       updated_at: now,
       created_at: now,
       locked_at: None,

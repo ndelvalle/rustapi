@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::user::PublicUser;
 use crate::tests::setup::with_app;
+use crate::tests::utils::create_user;
 
 #[test]
 fn post_user_route() {
@@ -39,5 +40,40 @@ fn post_user_route() {
     let body = res.json::<PublicUser>().await.unwrap();
     assert_eq!(body.name, "Nahuel");
     assert_eq!(body.email, "nahuel@gmail.com");
+  });
+}
+
+#[test]
+fn authenticate_user_route() {
+  #[derive(Debug, Serialize, Deserialize)]
+  struct RequestBody {
+    email: String,
+    password: String,
+  }
+
+  let request_body = RequestBody {
+    email: "nahuel@gmail.com".to_owned(),
+    password: "Password1".to_owned(),
+  };
+
+  with_app(async move {
+    create_user("nahuel@gmail.com").await.unwrap();
+
+    let client = reqwest::Client::new();
+    let res = client
+      .post("http://localhost:8088/users/authenticate")
+      .json(&request_body)
+      .send()
+      .await
+      .unwrap();
+
+    // Status code:
+    let status_code = res.status();
+    let actual = status_code;
+    let expected = StatusCode::OK;
+    assert_eq!(actual, expected);
+
+    // Body:
+    // TODO: Assert response body
   });
 }
