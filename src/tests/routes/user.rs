@@ -1,8 +1,8 @@
 use reqwest;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use serde_json::Value as Json;
 
+use crate::models::user::PublicUser;
 use crate::tests::setup::with_app;
 
 #[test]
@@ -29,13 +29,15 @@ fn post_user_route() {
       .await
       .unwrap();
 
-    let status_code = res.status();
-    // TODO: Assert body response
-    let _body = res.json::<Json>().await.unwrap();
-
     // Status code:
+    let status_code = res.status();
     let actual = status_code;
     let expected = StatusCode::OK;
     assert_eq!(actual, expected);
+
+    // Body:
+    let body = res.json::<PublicUser>().await.unwrap();
+    assert_eq!(body.name, "Nahuel");
+    assert_eq!(body.email, "nahuel@gmail.com");
   });
 }
