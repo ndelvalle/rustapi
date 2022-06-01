@@ -32,8 +32,6 @@ where
   RUNTIME.block_on(async move {
     let is_app_running = is_app_running().await;
 
-    dbg!("is_app_running: {:?}", is_app_running);
-
     if !is_app_running {
       tokio::spawn(start_app());
       wait_for_app_to_start().await.unwrap();
