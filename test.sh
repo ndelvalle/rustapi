@@ -6,4 +6,5 @@
 
 cargo test -- \
   --test-threads=1 \
-  --nocapture
+  --nocapture \
+  --color=always
