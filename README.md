@@ -1,6 +1,6 @@
 # rustapi
 
-[![Tests](https://github.com/ndelvalle/rustapi/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ndelvalle/rustapi/actions/workflows/ci.yml)
+[![Tests](https://github.com/ndelvalle/rustapi/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/ndelvalle/rustapi/actions/workflows/test.yml)
 
 RESTful API template built with Rust lang. It uses [MongoDB](https://docs.mongodb.com/)
 database and [Axum](https://github.com/tokio-rs/axum) HTTP framework.
@@ -27,34 +27,38 @@ To use this template as your project starting point, click "Use this template" a
 ### Project structure
 
 ```bash
+├── Cargo.lock
 ├── Cargo.toml
 ├── README.md
 ├── config
 │   ├── default.json    # Default configuration
-│   └── production.json # Production configuration (Overwrites the default)
+│   ├── production.json # Production configuration (Overwrites the default)
+│   └── test.json       # Test configuration (Overwrites the default)
 ├── rustfmt.toml
-└── src
-    ├── context.rs      # Shared state and functionality across the APP
-    ├── database.rs
-    ├── errors.rs
-    ├── lib             # Helpers not related to the business model
-    │   ├── authenticate_request.rs
-    │   ├── date.rs
-    │   ├── mod.rs
-    │   ├── models.rs   # Base Database Model trait
-    │   ├── to_object_id.rs
-    │   └── token.rs
-    ├── logger.rs
-    ├── main.rs
-    ├── models
-    │   ├── cat.rs
-    │   ├── mod.rs
-    │   └── user.rs
-    ├── routes
-    │   ├── cat.rs
-    │   ├── mod.rs
-    │   └── user.rs
-    └── settings.rs
+├── src
+│   ├── database.rs
+│   ├── errors.rs
+│   ├── lib             # Helpers not related to the business model
+│   │   ├── authenticate_request.rs
+│   │   ├── date.rs
+│   │   ├── mod.rs
+│   │   ├── models.rs   # Base Database Model trait
+│   │   ├── to_object_id.rs
+│   │   └── token.rs
+│   ├── logger.rs
+│   ├── main.rs
+│   ├── models
+│   │   ├── cat.rs
+│   │   ├── mod.rs
+│   │   └── user.rs
+│   ├── routes
+│   │   ├── cat.rs
+│   │   ├── mod.rs
+│   │   ├── status.rs
+│   │   └── user.rs
+│   ├── settings.rs
+│   └── tests           # E2E Tests
+└── test.sh
 ```
 
 ## Contributing
