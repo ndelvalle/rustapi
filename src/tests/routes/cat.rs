@@ -87,3 +87,33 @@ fn get_cats_route() {
     assert_eq!(cat.user, user.id.unwrap());
   });
 }
+
+#[test]
+fn get_cat_by_id_route() {
+  with_app(async move {
+    let user = create_user("nico@test.com").await.unwrap();
+    let token = create_user_token(user.clone()).await.unwrap();
+
+    let cholin = Cat::new(user.id.unwrap(), "Cholin".to_owned());
+    let cholin = Cat::create(cholin).await.unwrap();
+
+    let client = reqwest::Client::new();
+    let res = client
+      .get(format!("http://localhost:8088/cats/{}", cholin.id.unwrap()))
+      .header("Authorization", format!("Bearer {}", token))
+      .send()
+      .await
+      .unwrap();
+
+    // Status code:
+    let status_code = res.status();
+    let actual = status_code;
+    let expected = StatusCode::OK;
+    assert_eq!(actual, expected);
+
+    // Body:
+    let body = res.json::<PublicCat>().await.unwrap();
+    assert_eq!(body.name, "Cholin");
+    assert_eq!(body.user, user.id.unwrap());
+  });
+}
