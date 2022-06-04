@@ -6,6 +6,7 @@ use axum::{
 use bson::doc;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
+use wither::mongodb::options::FindOptions;
 
 use crate::errors::Error;
 use crate::errors::NotFound;
@@ -35,7 +36,11 @@ async fn create_cat(
 }
 
 async fn query_cats(user: TokenUser) -> Result<Json<Vec<PublicCat>>, Error> {
-  let cats = Cat::find(doc! { "user": &user.id }, None)
+  let options = FindOptions::builder()
+    .sort(doc! { "created_at": -1 })
+    .build();
+
+  let cats = Cat::find(doc! { "user": &user.id }, options)
     .await?
     .into_iter()
     .map(Into::into)
