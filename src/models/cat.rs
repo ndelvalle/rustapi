@@ -14,7 +14,7 @@ impl ModelExt for Cat {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, WitherModel, Validate)]
-#[model(index(keys = r#"doc!{ "user": 1 }"#))]
+#[model(index(keys = r#"doc!{ "user": 1, "created_at": 1 }"#))]
 pub struct Cat {
   #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
   pub id: Option<ObjectId>,
