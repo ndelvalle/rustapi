@@ -117,3 +117,32 @@ fn get_cat_by_id_route() {
     assert_eq!(body.user, user.id.unwrap());
   });
 }
+
+#[test]
+fn remove_cat_by_id_route() {
+  with_app(async move {
+    let user = create_user("nico@test.com").await.unwrap();
+    let token = create_user_token(user.clone()).await.unwrap();
+
+    let tigrin = Cat::new(user.id.unwrap(), "Tigrin".to_owned());
+    let tigrin = Cat::create(tigrin).await.unwrap();
+
+    let client = reqwest::Client::new();
+    let res = client
+      .delete(format!("http://localhost:8088/cats/{}", tigrin.id.unwrap()))
+      .header("Authorization", format!("Bearer {}", token))
+      .send()
+      .await
+      .unwrap();
+
+    // Status code:
+    let status_code = res.status();
+    let actual = status_code;
+    let expected = StatusCode::OK;
+    assert_eq!(actual, expected);
+
+    // Cat from the database
+    let cat = Cat::find_by_id(&tigrin.id.unwrap()).await.unwrap();
+    assert!(cat.is_none(), "Cat should be removed from the database");
+  });
+}
