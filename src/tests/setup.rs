@@ -13,7 +13,7 @@ use crate::models::user::User;
 use crate::settings::get_settings;
 
 lazy_static! {
-  static ref RUNTIME: Runtime = Runtime::new().expect("Should create a tokio runtime");
+  static ref RUNTIME: Runtime = Runtime::new().expect("Failed to create Tokio runtime");
 }
 
 /// Use the static tokio runtime to start the APP, wait for the server to listen
@@ -21,8 +21,8 @@ lazy_static! {
 /// runtime (tokio::test) is not used to avoid starting the app again on each
 /// test. Arguably this would be a better approach, but this API is statless
 /// (Without considering the database), so there is no point on starting a new
-/// instance on each test. Make sure to run tests sequentially (cargo test --
-/// --test-threads=1) to avoid inconsistency with the Database.
+/// instance on each test. Make sure to run tests sequentially (cargo test -- --test-threads=1)
+/// to avoid inconsistency with the Database.
 /// Read more: https://github.com/tokio-rs/tokio/issues/2374
 pub fn with_app<F>(test: F) -> F::Output
 where
