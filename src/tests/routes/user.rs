@@ -3,6 +3,7 @@ use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
 use crate::models::user::PublicUser;
+use crate::routes::user::AuthenticateResponse;
 use crate::tests::setup::with_app;
 use crate::tests::utils::create_user;
 
@@ -74,6 +75,7 @@ fn authenticate_user_route() {
     assert_eq!(actual, expected);
 
     // Body:
-    // TODO: Assert response body
+    let body = res.json::<AuthenticateResponse>().await.unwrap();
+    assert_eq!(body.user.email, "nahuel@gmail.com");
   });
 }
