@@ -21,7 +21,7 @@ tracing-subscriber = "0.3.11"
 tower-http = { version = "0.3.0", features = ["trace", "compression-br", "propagate-header", "sensitive-headers"] }
 http = "0.2.6"
 chrono = "0.4.19"
-async-trait = "0.1.53"
+async-trait = "0.1.56"
 # Investigate if wither::bson can be used instead and activate this feature.
 bson = { version = "2.2.0", features = ["serde_with", "chrono-0_4"] }
 jsonwebtoken = "8.1.0"
