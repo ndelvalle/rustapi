@@ -67,10 +67,6 @@ impl Settings {
       // Deserialize (and thus freeze) the entire configuration.
       .try_deserialize()
   }
-
-  pub fn is_test(&self) -> bool {
-    self.environment == "test"
-  }
 }
 
 impl fmt::Display for Server {

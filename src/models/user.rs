@@ -10,7 +10,6 @@ use crate::errors::Error;
 use crate::lib::date;
 use crate::lib::date::Date;
 use crate::lib::models::ModelExt;
-use crate::settings::get_settings;
 
 impl ModelExt for User {
   type T = User;
@@ -85,12 +84,10 @@ where
 {
   // TODO: Hash password with salt.
   // https://docs.rs/bcrypt/latest/bcrypt/fn.hash_with_salt.html
-  let settings = get_settings();
-  let cost = if settings.is_test() {
-    4
-  } else {
-    bcrypt::DEFAULT_COST
-  };
+  #[cfg(not(test))]
+  let cost = bcrypt::DEFAULT_COST;
+  #[cfg(test)]
+  let cost = 4;
   task::spawn_blocking(move || bcrypt::hash(password.as_ref(), cost))
     .await
     .map_err(Error::RunSyncTask)?
