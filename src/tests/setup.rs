@@ -54,6 +54,7 @@ async fn start_app() {
     .expect("Failed to start server");
 }
 
+// TODO: Move to utils
 async fn wait_for_app_to_start() -> Result<(), &'static str> {
   for _ in 0..2000 {
     let is_running = is_app_running().await;
@@ -66,6 +67,7 @@ async fn wait_for_app_to_start() -> Result<(), &'static str> {
   Err("Could not connect to APP")
 }
 
+// TODO: Move to utils
 async fn is_app_running() -> bool {
   let settings = get_settings();
   let port = settings.server.port;
@@ -75,6 +77,7 @@ async fn is_app_running() -> bool {
   is_running
 }
 
+// TODO: Move to utils
 async fn cleanup_database() {
   Cat::delete_many(doc! {}).await.unwrap();
   User::delete_many(doc! {}).await.unwrap();

@@ -36,7 +36,7 @@ fn post_cat_route() {
     // Status code:
     let status_code = res.status();
     let actual = status_code;
-    let expected = StatusCode::OK;
+    let expected = StatusCode::CREATED;
     assert_eq!(actual, expected);
 
     // Body:
@@ -138,7 +138,7 @@ fn remove_cat_by_id_route() {
     // Status code:
     let status_code = res.status();
     let actual = status_code;
-    let expected = StatusCode::OK;
+    let expected = StatusCode::NO_CONTENT;
     assert_eq!(actual, expected);
 
     // Cat from the database

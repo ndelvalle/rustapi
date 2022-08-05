@@ -1,3 +1,4 @@
+use axum::http::StatusCode;
 use axum::{routing::post, Json, Router};
 use bson::doc;
 use serde::{Deserialize, Serialize};
@@ -6,6 +7,7 @@ use tracing::debug;
 use crate::errors::BadRequest;
 use crate::errors::NotFound;
 use crate::errors::{AuthenticateError, Error};
+use crate::lib::custom_response::{CustomResponse, CustomResponseBuilder};
 use crate::lib::models::ModelExt;
 use crate::lib::token;
 use crate::models::user;
@@ -18,13 +20,18 @@ pub fn create_route() -> Router {
     .route("/users/authenticate", post(authenticate_user))
 }
 
-async fn create_user(Json(body): Json<CreateBody>) -> Result<Json<PublicUser>, Error> {
+async fn create_user(Json(body): Json<CreateBody>) -> Result<CustomResponse<PublicUser>, Error> {
   let password_hash = user::hash_password(body.password).await?;
   let user = User::new(body.name, body.email, password_hash);
   let user = User::create(user).await?;
   let res = PublicUser::from(user);
 
-  Ok(Json(res))
+  let res = CustomResponseBuilder::new()
+    .body(res)
+    .status_code(StatusCode::CREATED)
+    .build();
+
+  Ok(res)
 }
 
 async fn authenticate_user(
