@@ -1678,6 +1678,7 @@ dependencies = [
  "http",
  "jsonwebtoken",
  "lazy_static",
+ "mime",
  "once_cell",
  "reqwest",
  "serde",

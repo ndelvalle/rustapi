@@ -34,7 +34,7 @@ fn post_user_route() {
     // Status code:
     let status_code = res.status();
     let actual = status_code;
-    let expected = StatusCode::OK;
+    let expected = StatusCode::CREATED;
     assert_eq!(actual, expected);
 
     // Body:

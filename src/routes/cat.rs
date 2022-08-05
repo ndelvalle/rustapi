@@ -1,3 +1,4 @@
+use axum::http::StatusCode;
 use axum::{
   extract::Path,
   routing::{delete, get, post, put},
@@ -10,6 +11,7 @@ use wither::mongodb::options::FindOptions;
 
 use crate::errors::Error;
 use crate::errors::NotFound;
+use crate::lib::custom_response::{CustomResponse, CustomResponseBuilder};
 use crate::lib::models::ModelExt;
 use crate::lib::to_object_id::to_object_id;
 use crate::lib::token::TokenUser;
@@ -27,12 +29,17 @@ pub fn create_route() -> Router {
 async fn create_cat(
   user: TokenUser,
   Json(payload): Json<CreateCat>,
-) -> Result<Json<PublicCat>, Error> {
+) -> Result<CustomResponse<PublicCat>, Error> {
   let cat = Cat::new(user.id, payload.name);
   let cat = Cat::create(cat).await?;
   let res = PublicCat::from(cat);
 
-  Ok(Json(res))
+  let res = CustomResponseBuilder::new()
+    .body(res)
+    .status_code(StatusCode::CREATED)
+    .build();
+
+  Ok(res)
 }
 
 async fn query_cats(user: TokenUser) -> Result<Json<Vec<PublicCat>>, Error> {
@@ -68,7 +75,10 @@ async fn get_cat_by_id(user: TokenUser, Path(id): Path<String>) -> Result<Json<P
   Ok(Json(cat))
 }
 
-async fn remove_cat_by_id(user: TokenUser, Path(id): Path<String>) -> Result<(), Error> {
+async fn remove_cat_by_id(
+  user: TokenUser,
+  Path(id): Path<String>,
+) -> Result<CustomResponse<()>, Error> {
   let cat_id = to_object_id(id)?;
   let delete_result = Cat::delete_one(doc! { "_id": cat_id, "user": &user.id }).await?;
 
@@ -77,7 +87,11 @@ async fn remove_cat_by_id(user: TokenUser, Path(id): Path<String>) -> Result<(),
     return Err(Error::NotFound(NotFound::new(String::from("cat"))));
   }
 
-  Ok(())
+  let res = CustomResponseBuilder::new()
+    .status_code(StatusCode::NO_CONTENT)
+    .build();
+
+  Ok(res)
 }
 
 async fn update_cat_by_id(
