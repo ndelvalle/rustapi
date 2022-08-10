@@ -58,12 +58,6 @@ where
   T: Serialize,
 {
   fn into_response(self) -> Response {
-    let has_body = self.body.is_some();
-
-    if !has_body {
-      return (self.status_code).into_response();
-    }
-
     let body = match self.body {
       Some(body) => serde_json::to_vec(&body),
       None => return (self.status_code).into_response(),
