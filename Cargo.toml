@@ -13,7 +13,7 @@ serde_derive = "1.0.136"
 # https://github.com/thedodd/wither/pull/89#issuecomment-1023644443
 wither = { git = "https://github.com/thedodd/wither" }
 futures = "0.3.24"
-thiserror = "1.0.33"
+thiserror = "1.0.34"
 axum = { version = "0.5.16", features = ["headers"] }
 tokio = { version = "1.20.1", features = ["full"] }
 tracing = "0.1.36"
