@@ -15,7 +15,7 @@ wither = { git = "https://github.com/thedodd/wither" }
 futures = "0.3.24"
 thiserror = "1.0.33"
 axum = { version = "0.5.16", features = ["headers"] }
-tokio = { version = "1.20.1", features = ["full"] }
+tokio = { version = "1.21.1", features = ["full"] }
 tracing = "0.1.36"
 tracing-subscriber = "0.3.15"
 tower-http = { version = "0.3.4", features = ["trace", "compression-br", "propagate-header", "sensitive-headers"] }
