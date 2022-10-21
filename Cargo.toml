@@ -14,7 +14,7 @@ serde_derive = "1.0.136"
 wither = { git = "https://github.com/thedodd/wither" }
 futures = "0.3.24"
 thiserror = "1.0.37"
-axum = { version = "0.5.16", features = ["headers"] }
+axum = { version = "0.5.17", features = ["headers"] }
 tokio = { version = "1.21.2", features = ["full"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
