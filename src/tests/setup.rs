@@ -6,7 +6,7 @@ use tokio::runtime::Runtime;
 use tokio::time::sleep;
 use tokio::time::Duration;
 
-use crate::create_app;
+use crate::app::create_app;
 use crate::lib::models::ModelExt;
 use crate::models::cat::Cat;
 use crate::models::user::User;
