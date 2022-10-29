@@ -68,6 +68,27 @@ pub trait ModelExt {
       .map_err(Error::Wither)
   }
 
+  async fn find_and_count<O>(query: Document, options: O) -> Result<(Vec<Self::T>, u64), Error>
+  where
+    O: Into<Option<FindOptions>> + Send,
+  {
+    let connection = get_connection();
+    // TODO: Count and find in parallel.
+    let count = Self::T::collection(connection)
+      .count_documents(query.clone(), None)
+      .await
+      .map_err(Error::Mongo)?;
+
+    let items = Self::T::find(connection, query, options.into())
+      .await
+      .map_err(Error::Wither)?
+      .try_collect::<Vec<Self::T>>()
+      .await
+      .map_err(Error::Wither)?;
+
+    Ok((items, count))
+  }
+
   async fn cursor<O>(query: Document, options: O) -> Result<ModelCursor<Self::T>, Error>
   where
     O: Into<Option<FindOptions>> + Send,
