@@ -72,6 +72,14 @@ fn get_cats_route() {
     let expected = StatusCode::OK;
     assert_eq!(actual, expected);
 
+    // Response headers:
+    let headers = res.headers();
+    assert_eq!(headers.get("Content-Type").unwrap(), "application/json");
+    // Response pagination headers:
+    assert_eq!(headers.get("X-Pagination-Count").unwrap(), "2");
+    assert_eq!(headers.get("X-Pagination-Offset").unwrap(), "0");
+    assert_eq!(headers.get("X-Pagination-Limit").unwrap(), "100");
+
     // Body:
     let body = res.json::<Vec<PublicCat>>().await.unwrap();
     assert_eq!(body.len(), 2, "Should return two cats");
