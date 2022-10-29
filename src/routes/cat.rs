@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum::{
-  extract::Path,
+  extract::{Path, Query},
   routing::{delete, get, post, put},
   Json, Router,
 };
@@ -13,6 +13,8 @@ use crate::errors::Error;
 use crate::errors::NotFound;
 use crate::lib::custom_response::{CustomResponse, CustomResponseBuilder};
 use crate::lib::models::ModelExt;
+use crate::lib::pagination::Pagination;
+use crate::lib::request_query::RequestQuery;
 use crate::lib::to_object_id::to_object_id;
 use crate::lib::token::TokenUser;
 use crate::models::cat::{Cat, PublicCat};
@@ -42,19 +44,28 @@ async fn create_cat(
   Ok(res)
 }
 
-async fn query_cats(user: TokenUser) -> Result<Json<Vec<PublicCat>>, Error> {
+async fn query_cats(
+  user: TokenUser,
+  Query(query): Query<RequestQuery>,
+) -> Result<CustomResponse<Vec<PublicCat>>, Error> {
+  let pagination = Pagination::build_from_request_query(query);
+
   let options = FindOptions::builder()
-    .sort(doc! { "created_at": -1 })
+    .sort(doc! { "created_at": -1_i32 })
+    .skip(pagination.offset)
+    .limit(pagination.limit as i64)
     .build();
 
-  let cats = Cat::find(doc! { "user": &user.id }, options)
-    .await?
-    .into_iter()
-    .map(Into::into)
-    .collect::<Vec<PublicCat>>();
+  let (cats, count) = Cat::find_and_count(doc! { "user": &user.id }, options).await?;
+  let cats = cats.into_iter().map(Into::into).collect::<Vec<PublicCat>>();
+
+  let res = CustomResponseBuilder::new()
+    .body(cats)
+    .pagination(pagination.count(count).build())
+    .build();
 
   debug!("Returning cats");
-  Ok(Json(cats))
+  Ok(res)
 }
 
 async fn get_cat_by_id(user: TokenUser, Path(id): Path<String>) -> Result<Json<PublicCat>, Error> {
