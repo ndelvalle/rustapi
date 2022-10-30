@@ -1,0 +1,65 @@
+openapi: 3.1.0
+
+info:
+  version: 1.0.0
+  title: v1 REST API
+  description: v1 REST API
+
+servers:
+- url: https://api.yoururl.com
+
+externalDocs:
+  description: v1 REST API
+  url: https://github.com/ndelvalle/rustapi
+
+security:
+  - ApiKeyAuthentication: []
+
+paths:
+  "/v1/cats":
+    get:
+      summary: Query cats 
+      description: Query cats
+      operationId: application/query-cats
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Feed"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  schemas:
+    # Cat schema
+    Cat:
+      type: object
+      required:
+        - id
+        - user
+        - name
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        user:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+
+  securitySchemes:
+    ApiKeyAuthentication:
+      type: apiKey
+      in: header
+      name: Authorization
+
+  responses:
+    Unauthorized:
+      description: Authentication information is missing or invalid
