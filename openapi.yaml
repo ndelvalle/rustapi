@@ -14,6 +14,7 @@ externalDocs:
 
 paths:
   "/v1/cats":
+    # Query cats
     get:
       summary: Query cats 
       description: Query cats
@@ -22,6 +23,33 @@ paths:
         - bearerAuth: []
       responses:
         '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Cat"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    # Create a new cat
+    post:
+      summary: Create a new cat
+      description: Create a new cat
+      operationId: application/create-cat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: The cat name
+      responses:
+        '201':
           description: Response
           content:
             application/json:
