@@ -12,22 +12,21 @@ externalDocs:
   description: v1 REST API
   url: https://github.com/ndelvalle/rustapi
 
-security:
-  - ApiKeyAuthentication: []
-
 paths:
   "/v1/cats":
     get:
       summary: Query cats 
       description: Query cats
       operationId: application/query-cats
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Response
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Feed"
+                "$ref": "#/components/schemas/Cat"
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -55,10 +54,10 @@ components:
           type: string
 
   securitySchemes:
-    ApiKeyAuthentication:
-      type: apiKey
-      in: header
-      name: Authorization
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
   responses:
     Unauthorized:
