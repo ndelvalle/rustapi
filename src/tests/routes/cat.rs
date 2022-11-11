@@ -26,7 +26,7 @@ fn post_cat_route() {
 
     let client = reqwest::Client::new();
     let res = client
-      .post("http://localhost:8088/cats")
+      .post("http://localhost:8088/v1/cats")
       .header("Authorization", format!("Bearer {}", token))
       .json(&body)
       .send()
@@ -60,7 +60,7 @@ fn get_cats_route() {
 
     let client = reqwest::Client::new();
     let res = client
-      .get("http://localhost:8088/cats")
+      .get("http://localhost:8088/v1/cats")
       .header("Authorization", format!("Bearer {}", token))
       .send()
       .await
@@ -107,7 +107,10 @@ fn get_cat_by_id_route() {
 
     let client = reqwest::Client::new();
     let res = client
-      .get(format!("http://localhost:8088/cats/{}", cholin.id.unwrap()))
+      .get(format!(
+        "http://localhost:8088/v1/cats/{}",
+        cholin.id.unwrap()
+      ))
       .header("Authorization", format!("Bearer {}", token))
       .send()
       .await
@@ -137,7 +140,10 @@ fn remove_cat_by_id_route() {
 
     let client = reqwest::Client::new();
     let res = client
-      .delete(format!("http://localhost:8088/cats/{}", tigrin.id.unwrap()))
+      .delete(format!(
+        "http://localhost:8088/v1/cats/{}",
+        tigrin.id.unwrap()
+      ))
       .header("Authorization", format!("Bearer {}", token))
       .send()
       .await
