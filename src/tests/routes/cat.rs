@@ -2,12 +2,12 @@ use reqwest;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
-use crate::lib::models::ModelExt;
 use crate::models::cat::Cat;
 use crate::models::cat::PublicCat;
 use crate::tests::setup::with_app;
 use crate::tests::utils::create_user;
 use crate::tests::utils::create_user_token;
+use crate::utils::models::ModelExt;
 
 #[test]
 fn post_cat_route() {

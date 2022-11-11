@@ -7,7 +7,7 @@ use bytes::{BufMut, BytesMut};
 use serde::Serialize;
 use tracing::error;
 
-use crate::lib::pagination::Pagination;
+use crate::utils::pagination::Pagination;
 
 #[derive(Debug)]
 pub struct CustomResponse<T: Serialize> {

@@ -1,7 +1,7 @@
 pub mod cat;
 pub mod user;
 
-use crate::lib::models::ModelExt;
+use crate::utils::models::ModelExt;
 use crate::Error;
 
 pub async fn sync_indexes() -> Result<(), Error> {
