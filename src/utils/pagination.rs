@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::lib::request_query::RequestQuery;
+use crate::utils::request_query::RequestQuery;
 
 const LIMIT: u64 = 100;
 const OFFSET: u64 = 0;

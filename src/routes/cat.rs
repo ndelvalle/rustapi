@@ -11,13 +11,13 @@ use wither::mongodb::options::FindOptions;
 
 use crate::errors::Error;
 use crate::errors::NotFound;
-use crate::lib::custom_response::{CustomResponse, CustomResponseBuilder};
-use crate::lib::models::ModelExt;
-use crate::lib::pagination::Pagination;
-use crate::lib::request_query::RequestQuery;
-use crate::lib::to_object_id::to_object_id;
-use crate::lib::token::TokenUser;
 use crate::models::cat::{Cat, PublicCat};
+use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder};
+use crate::utils::models::ModelExt;
+use crate::utils::pagination::Pagination;
+use crate::utils::request_query::RequestQuery;
+use crate::utils::to_object_id::to_object_id;
+use crate::utils::token::TokenUser;
 
 pub fn create_route() -> Router {
   Router::new()
