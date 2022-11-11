@@ -1,9 +1,9 @@
 use crate::errors::Error;
-use crate::lib::models::ModelExt;
-use crate::lib::token;
 use crate::models::user::hash_password;
 use crate::models::user::User;
 use crate::settings::get_settings;
+use crate::utils::models::ModelExt;
+use crate::utils::token;
 
 pub async fn create_user<T: AsRef<str>>(email: T) -> Result<User, Error> {
   let name = "Nahuel";

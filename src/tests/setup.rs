@@ -7,10 +7,10 @@ use tokio::time::sleep;
 use tokio::time::Duration;
 
 use crate::app::create_app;
-use crate::lib::models::ModelExt;
 use crate::models::cat::Cat;
 use crate::models::user::User;
 use crate::settings::get_settings;
+use crate::utils::models::ModelExt;
 
 lazy_static! {
   static ref RUNTIME: Runtime = Runtime::new().expect("Failed to create Tokio runtime");
