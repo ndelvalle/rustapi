@@ -1,0 +1,146 @@
+openapi: 3.1.0
+
+info:
+  version: 1.0.0
+  title: v1 REST API
+  description: v1 REST API
+
+servers:
+- url: https://api.yoururl.com
+
+externalDocs:
+  description: v1 REST API
+  url: https://github.com/ndelvalle/rustapi
+
+paths:
+  "/v1/cats":
+    # Query cats
+    get:
+      summary: Query cats 
+      description: Query cats
+      operationId: application/query-cats
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Cat"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    # Create a new cat
+    post:
+      summary: Create a new cat
+      description: Create a new cat
+      operationId: application/create-cat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: The cat name
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Cat"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  "/v1/cats/{cat_id}":
+    # Get cat by ID
+    get:
+      summary: Get cat by ID
+      description: get cat by ID
+      operationId: application/get-cat-by-id
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Cat"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    # Remove cat by ID
+    delete:
+      summary: Remove a cat by ID
+      description: Removes a cat by ID
+      operationId: application/remove-cat-by-id
+      responses:
+        '204':
+          description: Response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    # Update cat by ID
+    patch:
+      summary: Update a cat by ID
+      description: Update cat by ID
+      operationId: application/update-cat-by-id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: The cat name
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Cat"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  schemas:
+    # Cat schema
+    Cat:
+      type: object
+      required:
+        - id
+        - user
+        - name
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        user:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Unauthorized:
+      description: Authentication information is missing or invalid
