@@ -58,6 +58,59 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  "/v1/cats/{cat_id}":
+    # Get cat by ID
+    get:
+      summary: Get cat by ID
+      description: get cat by ID
+      operationId: application/get-cat-by-id
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Cat"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    # Remove cat by ID
+    delete:
+      summary: Remove a cat by ID
+      description: Removes a cat by ID
+      operationId: application/remove-cat-by-id
+      responses:
+        '204':
+          description: Response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      summary: Update a cat by ID
+      description: Update cat by ID
+      operationId: application/update-cat-by-id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: The cat name
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Cat"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+          
 components:
   schemas:
     # Cat schema
