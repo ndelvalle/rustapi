@@ -85,6 +85,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+    # Update cat by ID
     patch:
       summary: Update a cat by ID
       description: Update cat by ID
@@ -110,7 +111,7 @@ paths:
                 "$ref": "#/components/schemas/Cat"
         '401':
           $ref: '#/components/responses/Unauthorized'
-          
+
 components:
   schemas:
     # Cat schema
