@@ -6,7 +6,7 @@ use axum::{
 
 use crate::errors::AuthenticateError;
 use crate::errors::Error;
-use crate::settings::get_settings;
+use crate::settings::SETTINGS;
 use crate::utils::token;
 use crate::utils::token::TokenUser;
 
@@ -23,8 +23,7 @@ where
         .await
         .map_err(|_| AuthenticateError::InvalidToken)?;
 
-    let settings = get_settings();
-    let secret = settings.auth.secret.as_str();
+    let secret = SETTINGS.auth.secret.as_str();
     let token_data =
       token::decode(bearer.token(), secret).map_err(|_| AuthenticateError::InvalidToken)?;
 
