@@ -9,7 +9,7 @@ use tokio::time::Duration;
 use crate::app::create_app;
 use crate::models::cat::Cat;
 use crate::models::user::User;
-use crate::settings::get_settings;
+use crate::settings::SETTINGS;
 use crate::utils::models::ModelExt;
 
 lazy_static! {
@@ -44,8 +44,7 @@ where
 
 async fn start_app() {
   let app = create_app().await;
-  let settings = get_settings();
-  let port = settings.server.port;
+  let port = SETTINGS.server.port;
   let address = SocketAddr::from(([127, 0, 0, 1], port));
 
   axum::Server::bind(&address)
@@ -69,8 +68,7 @@ async fn wait_for_app_to_start() -> Result<(), &'static str> {
 
 // TODO: Move to utils
 async fn is_app_running() -> bool {
-  let settings = get_settings();
-  let port = settings.server.port;
+  let port = SETTINGS.server.port;
   let address = SocketAddr::from(([127, 0, 0, 1], port));
   let is_running = TcpStream::connect(address).await.is_ok();
 

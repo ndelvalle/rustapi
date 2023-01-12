@@ -19,14 +19,13 @@ mod utils;
 mod tests;
 
 use errors::Error;
-use settings::get_settings;
+use settings::SETTINGS;
 
 #[tokio::main]
 async fn main() {
   let app = app::create_app().await;
 
-  let settings = get_settings();
-  let port = settings.server.port;
+  let port = SETTINGS.server.port;
   let address = SocketAddr::from(([127, 0, 0, 1], port));
 
   info!("Server listening on {}", &address);

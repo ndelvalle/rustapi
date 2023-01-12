@@ -1,7 +1,7 @@
 use crate::errors::Error;
 use crate::models::user::hash_password;
 use crate::models::user::User;
-use crate::settings::get_settings;
+use crate::settings::SETTINGS;
 use crate::utils::models::ModelExt;
 use crate::utils::token;
 
@@ -17,8 +17,7 @@ pub async fn create_user<T: AsRef<str>>(email: T) -> Result<User, Error> {
 }
 
 pub async fn create_user_token(user: User) -> Result<String, Error> {
-  let settings = get_settings();
-  let secret = settings.auth.secret.as_str();
+  let secret = SETTINGS.auth.secret.as_str();
   let token = token::create(user, secret).unwrap();
 
   Ok(token)

@@ -9,7 +9,7 @@ use crate::errors::NotFound;
 use crate::errors::{AuthenticateError, Error};
 use crate::models::user;
 use crate::models::user::{PublicUser, User};
-use crate::settings::get_settings;
+use crate::settings::SETTINGS;
 use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder};
 use crate::utils::models::ModelExt;
 use crate::utils::token;
@@ -76,8 +76,7 @@ async fn authenticate_user(
     return Err(Error::Authenticate(AuthenticateError::Locked));
   }
 
-  let settings = get_settings();
-  let secret = settings.auth.secret.as_str();
+  let secret = SETTINGS.auth.secret.as_str();
   let token = token::create(user.clone(), secret)
     .map_err(|_| Error::Authenticate(AuthenticateError::TokenCreation))?;
 
