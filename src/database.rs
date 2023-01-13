@@ -16,4 +16,3 @@ lazy_static! {
       .database(db_name)
   });
 }
-
