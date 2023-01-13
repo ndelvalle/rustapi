@@ -1,41 +1,45 @@
-use mongodb::error::Error as MongoError;
-use mongodb::Database as MongoDatabase;
-use std::sync::atomic::{AtomicBool, Ordering};
+use async_once::AsyncOnce;
+use lazy_static::lazy_static;
+use mongodb::Database;
 use wither::mongodb;
 
 use crate::settings::SETTINGS;
 
-// The Rust compiler is allowed to assume that the value a shared reference
-// points to will not change while that reference lives. CONNECTION is unsafely
-// mutated only once on the setup function (This function is called only once).
-static mut CONNECTION: Option<MongoDatabase> = None;
-static IS_INITIALIZED: AtomicBool = AtomicBool::new(false);
+lazy_static! {
+  pub static ref CONNECTION: AsyncOnce<Database> = AsyncOnce::new(async {
+    let db_uri = SETTINGS.database.uri.as_str();
+    let db_name = SETTINGS.database.name.as_str();
 
-pub async fn setup() -> Result<(), MongoError> {
-  let exchange = IS_INITIALIZED.compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed);
-  let can_setup = exchange == Ok(false);
-
-  if !can_setup {
-    panic!("Database already initialized");
-  }
-
-  let db_uri = SETTINGS.database.uri.as_str();
-  let db_name = SETTINGS.database.name.as_str();
-  let connection = mongodb::Client::with_uri_str(db_uri)
-    .await?
-    .database(db_name);
-
-  unsafe {
-    CONNECTION = Some(connection);
-  };
-
-  Ok(())
+    mongodb::Client::with_uri_str(db_uri)
+      .await
+      .expect("Failed to initialize MongoDB connection")
+      .database(db_name)
+  });
 }
 
-pub fn get_connection() -> &'static MongoDatabase {
-  unsafe {
-    CONNECTION
-      .as_ref()
-      .expect("Database connection not initialized")
-  }
-}
+// lazy_static! {
+//   pub static ref CONNECTION: MongoDatabase = {
+// tokio::spawn(async move {
+//         let db_uri = SETTINGS.database.uri.as_str();
+//         let db_name = SETTINGS.database.name.as_str();
+//
+//         mongodb::Client::with_uri_str(db_uri)
+//           .await
+//           .expect("Failed to initialize MongoDB connection")
+//           .database(db_name)
+//       })
+//     // tokio::runtime::Builder::new_current_thread()
+//     //   .enable_all()
+//     //   .build()
+//     //   .unwrap()
+//     //   .block_on(async {
+//     //     let db_uri = SETTINGS.database.uri.as_str();
+//     //     let db_name = SETTINGS.database.name.as_str();
+//     //
+//     //     mongodb::Client::with_uri_str(db_uri)
+//     //       .await
+//     //       .expect("Failed to initialize MongoDB connection")
+//     //       .database(db_name)
+//     //   })
+//   };
+// }
