@@ -23,7 +23,7 @@ http = "0.2.8"
 chrono = "0.4.23"
 async-trait = "0.1.61"
 # Investigate if wither::bson can be used instead and activate this feature.
-bson = { version = "2.4.0", features = ["serde_with", "chrono-0_4"] }
+bson = { version = "2.5.0", features = ["serde_with", "chrono-0_4"] }
 jsonwebtoken = "8.2.0"
 once_cell = "1.17.0"
 bcrypt = "0.13.0"
