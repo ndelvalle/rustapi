@@ -17,29 +17,3 @@ lazy_static! {
   });
 }
 
-// lazy_static! {
-//   pub static ref CONNECTION: MongoDatabase = {
-// tokio::spawn(async move {
-//         let db_uri = SETTINGS.database.uri.as_str();
-//         let db_name = SETTINGS.database.name.as_str();
-//
-//         mongodb::Client::with_uri_str(db_uri)
-//           .await
-//           .expect("Failed to initialize MongoDB connection")
-//           .database(db_name)
-//       })
-//     // tokio::runtime::Builder::new_current_thread()
-//     //   .enable_all()
-//     //   .build()
-//     //   .unwrap()
-//     //   .block_on(async {
-//     //     let db_uri = SETTINGS.database.uri.as_str();
-//     //     let db_name = SETTINGS.database.name.as_str();
-//     //
-//     //     mongodb::Client::with_uri_str(db_uri)
-//     //       .await
-//     //       .expect("Failed to initialize MongoDB connection")
-//     //       .database(db_name)
-//     //   })
-//   };
-// }
