@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::user::PublicUser;
 use crate::routes::user::AuthenticateResponse;
-use crate::tests::setup::with_app;
+use crate::tests::setup::use_app;
 use crate::tests::utils::create_user;
 
 #[test]
@@ -22,7 +22,7 @@ fn post_user_route() {
     password: "Password1".to_owned(),
   };
 
-  with_app(async move {
+  use_app(async move {
     let client = reqwest::Client::new();
     let res = client
       .post("http://localhost:8088/users")
@@ -57,7 +57,7 @@ fn authenticate_user_route() {
     password: "Password1".to_owned(),
   };
 
-  with_app(async move {
+  use_app(async move {
     create_user("nahuel@gmail.com").await.unwrap();
 
     let client = reqwest::Client::new();
