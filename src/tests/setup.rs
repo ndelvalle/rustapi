@@ -36,7 +36,7 @@ where
   F: std::future::Future,
 {
   RUNTIME.block_on(async move {
-     API.get().await;
+    API.get().await;
 
     Cat::delete_many(doc! {}).await.unwrap();
     User::delete_many(doc! {}).await.unwrap();
