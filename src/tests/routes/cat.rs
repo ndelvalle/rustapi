@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::cat::Cat;
 use crate::models::cat::PublicCat;
-use crate::tests::setup::with_app;
+use crate::tests::setup::use_app;
 use crate::tests::utils::create_user;
 use crate::tests::utils::create_user_token;
 use crate::utils::models::ModelExt;
@@ -20,7 +20,7 @@ fn post_cat_route() {
     name: "Tigrin".to_owned(),
   };
 
-  with_app(async move {
+  use_app(async move {
     let user = create_user("nico@test.com").await.unwrap();
     let token = create_user_token(user.clone()).await.unwrap();
 
@@ -48,7 +48,7 @@ fn post_cat_route() {
 
 #[test]
 fn get_cats_route() {
-  with_app(async move {
+  use_app(async move {
     let user = create_user("nico@test.com").await.unwrap();
     let token = create_user_token(user.clone()).await.unwrap();
 
@@ -98,7 +98,7 @@ fn get_cats_route() {
 
 #[test]
 fn get_cat_by_id_route() {
-  with_app(async move {
+  use_app(async move {
     let user = create_user("nico@test.com").await.unwrap();
     let token = create_user_token(user.clone()).await.unwrap();
 
@@ -131,7 +131,7 @@ fn get_cat_by_id_route() {
 
 #[test]
 fn remove_cat_by_id_route() {
-  with_app(async move {
+  use_app(async move {
     let user = create_user("nico@test.com").await.unwrap();
     let token = create_user_token(user.clone()).await.unwrap();
 

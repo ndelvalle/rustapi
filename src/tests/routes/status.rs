@@ -4,11 +4,11 @@ use reqwest::StatusCode;
 use serde_json::json;
 use serde_json::Value as Json;
 
-use crate::tests::setup::with_app;
+use crate::tests::setup::use_app;
 
 #[test]
 fn get_status_route() {
-  with_app(async {
+  use_app(async {
     let res = reqwest::get("http://localhost:8088/status").await.unwrap();
     let status_code = res.status();
     let body = res.json::<Json>().await.unwrap();
