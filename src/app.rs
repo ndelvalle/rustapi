@@ -5,17 +5,12 @@ use tower_http::{
   sensitive_headers::SetSensitiveHeadersLayer, trace,
 };
 
-use crate::database;
 use crate::logger;
 use crate::models;
 use crate::routes;
 
 pub async fn create_app() -> Router {
   logger::setup();
-
-  database::setup()
-    .await
-    .expect("Failed to setup database connection");
 
   models::sync_indexes()
     .await
