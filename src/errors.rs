@@ -44,19 +44,8 @@ impl Error {
     match *self {
       // 4XX Errors
       Error::ParseObjectID(_) => (StatusCode::BAD_REQUEST, 40001),
-      // Error::Wither(WitherError::Mongo(MongoError { ref kind, .. })) => {
-      //   let mongo_error = kind.as_ref();
-      //   match mongo_error {
-      //     // MongoDB E11000 error code represent a duplicate key error
-      //     MongoErrorKind::CommandError(MongoCommandError { code: 11000, .. }) => {
-      //       (StatusCode::BAD_REQUEST, 40002)
-      //     }
-      //     _ => (StatusCode::INTERNAL_SERVER_ERROR, 5003),
-      //   }
-      // }
       Error::BadRequest(_) => (StatusCode::BAD_REQUEST, 40003),
       Error::NotFound(_) => (StatusCode::NOT_FOUND, 40003),
-
       Error::Authenticate(AuthenticateError::WrongCredentials) => (StatusCode::UNAUTHORIZED, 40003),
       Error::Authenticate(AuthenticateError::InvalidToken) => (StatusCode::UNAUTHORIZED, 40003),
       Error::Authenticate(AuthenticateError::Locked) => (StatusCode::LOCKED, 40003),
@@ -71,6 +60,14 @@ impl Error {
       Error::RunSyncTask(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5009),
       Error::HashPassword(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5009),
     }
+  }
+
+  pub fn bad_request() -> Self {
+    Error::BadRequest(BadRequest {})
+  }
+
+  pub fn not_found() -> Self {
+    Error::NotFound(NotFound {})
   }
 }
 
@@ -98,38 +95,9 @@ pub enum AuthenticateError {
 }
 
 #[derive(thiserror::Error, Debug)]
-#[error("Bad request. Field: {field}, message: {message}")]
-pub struct BadRequest {
-  pub field: String,
-  pub message: String,
-}
-
-impl BadRequest {
-  pub fn new(field: String, message: String) -> Self {
-    BadRequest { field, message }
-  }
-
-  // TODO: Implement a proper empty Bad Request error
-  pub fn empty() -> Self {
-    BadRequest {
-      field: String::new(),
-      message: String::new(),
-    }
-  }
-}
+#[error("Bad Request")]
+pub struct BadRequest {}
 
 #[derive(thiserror::Error, Debug)]
 #[error("Not found")]
-pub struct NotFound {
-  resource: String,
-  message: String,
-}
-
-impl NotFound {
-  pub fn new(resource: String) -> Self {
-    NotFound {
-      resource: resource.clone(),
-      message: format!("{} not found", resource),
-    }
-  }
-}
+pub struct NotFound {}

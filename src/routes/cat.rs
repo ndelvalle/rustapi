@@ -10,7 +10,6 @@ use tracing::debug;
 use wither::mongodb::options::FindOptions;
 
 use crate::errors::Error;
-use crate::errors::NotFound;
 use crate::models::cat::{Cat, PublicCat};
 use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder};
 use crate::utils::models::ModelExt;
@@ -78,7 +77,7 @@ async fn get_cat_by_id(user: TokenUser, Path(id): Path<String>) -> Result<Json<P
     Some(cat) => cat,
     None => {
       debug!("Cat not found, returning 404 status code");
-      return Err(Error::NotFound(NotFound::new(String::from("cat"))));
+      return Err(Error::not_found());
     }
   };
 
@@ -95,7 +94,7 @@ async fn remove_cat_by_id(
 
   if delete_result.deleted_count == 0 {
     debug!("Cat not found, returning 404 status code");
-    return Err(Error::NotFound(NotFound::new(String::from("cat"))));
+    return Err(Error::not_found());
   }
 
   let res = CustomResponseBuilder::new()
@@ -124,7 +123,7 @@ async fn update_cat_by_id(
     Some(cat) => cat,
     None => {
       debug!("Cat not found, returning 404 status code");
-      return Err(Error::NotFound(NotFound::new(String::from("cat"))));
+      return Err(Error::not_found());
     }
   };
 

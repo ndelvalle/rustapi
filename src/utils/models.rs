@@ -18,7 +18,6 @@ use wither::Model as WitherModel;
 use wither::ModelCursor;
 
 use crate::database::CONNECTION;
-use crate::errors::BadRequest;
 use crate::errors::Error;
 
 // This is the Model trait. All models that have a MongoDB collection should
@@ -29,9 +28,7 @@ pub trait ModelExt {
 
   async fn create(mut model: Self::T) -> Result<Self::T, Error> {
     let connection = CONNECTION.get().await;
-    model
-      .validate()
-      .map_err(|_error| Error::BadRequest(BadRequest::empty()))?;
+    model.validate().map_err(|_error| Error::bad_request())?;
     model.save(connection, None).await.map_err(Error::Wither)?;
 
     Ok(model)
@@ -72,7 +69,7 @@ pub trait ModelExt {
     O: Into<Option<FindOptions>> + Send,
   {
     let connection = CONNECTION.get().await;
-    // TODO: Count and find in parallel.
+
     let count = Self::T::collection(connection)
       .count_documents(query.clone(), None)
       .await

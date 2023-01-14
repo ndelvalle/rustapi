@@ -4,8 +4,6 @@ use bson::doc;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-use crate::errors::BadRequest;
-use crate::errors::NotFound;
 use crate::errors::{AuthenticateError, Error};
 use crate::models::user;
 use crate::models::user::{PublicUser, User};
@@ -42,18 +40,12 @@ async fn authenticate_user(
 
   if email.is_empty() {
     debug!("Missing email, returning 400 status code");
-    return Err(Error::BadRequest(BadRequest::new(
-      "email".to_owned(),
-      "Missing email attribute".to_owned(),
-    )));
+    return Err(Error::bad_request());
   }
 
   if password.is_empty() {
     debug!("Missing password, returning 400 status code");
-    return Err(Error::BadRequest(BadRequest::new(
-      "password".to_owned(),
-      "Missing password attribute".to_owned(),
-    )));
+    return Err(Error::bad_request());
   }
 
   let user = User::find_one(doc! { "email": email }, None).await?;
@@ -62,7 +54,7 @@ async fn authenticate_user(
     Some(user) => user,
     None => {
       debug!("User not found, returning 401");
-      return Err(Error::NotFound(NotFound::new(String::from("user"))));
+      return Err(Error::not_found());
     }
   };
 
