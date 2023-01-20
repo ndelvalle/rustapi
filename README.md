@@ -10,18 +10,20 @@ database and [Axum](https://github.com/tokio-rs/axum) HTTP framework.
 - [Rust](https://www.rust-lang.org/tools/install)
 - [MongoDB](https://docs.mongodb.com/manual/installation/)
 
-### How to
+### How to use this template
 
 To use this template as your project starting point, click "Use this template" at the top of this page, or click [here](https://github.com/ndelvalle/rustapi/generate).
 
-### Features
+### Feature highlights
 
 * Authentication. Based on [jsonwebtoken](https://github.com/Keats/jsonwebtoken)
-* Layered configuration system. Based on [config-rs](https://github.com/mehcode/config-rs)
+* Layered configuration. Based on [config-rs](https://github.com/mehcode/config-rs)
 * Logs. Based on [tracing](https://github.com/tokio-rs/tracing)
 * Error handling
-* CI Jobs based on Github actions
+* Pagination
 * E2E Tests
+* OpenAPI Specification
+* CI based on Github actions
 * Dependabot configuration
 
 ### Project structure
@@ -60,6 +62,12 @@ To use this template as your project starting point, click "Use this template" a
 │   └── tests           # E2E Tests
 └── test.sh
 ```
+
+### Test
+To run tests make sure MongoDB is up and running.
+```
+./test.sh
+``` 
 
 ## Contributing
 
