@@ -44,21 +44,21 @@ impl Error {
     match *self {
       // 4XX Errors
       Error::ParseObjectID(_) => (StatusCode::BAD_REQUEST, 40001),
-      Error::BadRequest(_) => (StatusCode::BAD_REQUEST, 40003),
+      Error::BadRequest(_) => (StatusCode::BAD_REQUEST, 40002),
       Error::NotFound(_) => (StatusCode::NOT_FOUND, 40003),
-      Error::Authenticate(AuthenticateError::WrongCredentials) => (StatusCode::UNAUTHORIZED, 40003),
-      Error::Authenticate(AuthenticateError::InvalidToken) => (StatusCode::UNAUTHORIZED, 40003),
-      Error::Authenticate(AuthenticateError::Locked) => (StatusCode::LOCKED, 40003),
+      Error::Authenticate(AuthenticateError::WrongCredentials) => (StatusCode::UNAUTHORIZED, 40004),
+      Error::Authenticate(AuthenticateError::InvalidToken) => (StatusCode::UNAUTHORIZED, 40005),
+      Error::Authenticate(AuthenticateError::Locked) => (StatusCode::LOCKED, 40006),
 
       // 5XX Errors
       Error::Authenticate(AuthenticateError::TokenCreation) => {
         (StatusCode::INTERNAL_SERVER_ERROR, 5001)
       }
-      Error::Wither(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5001),
+      Error::Wither(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5002),
       Error::Mongo(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5003),
-      Error::SerializeMongoResponse(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5009),
-      Error::RunSyncTask(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5009),
-      Error::HashPassword(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5009),
+      Error::SerializeMongoResponse(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5004),
+      Error::RunSyncTask(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5005),
+      Error::HashPassword(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5006),
     }
   }
 
