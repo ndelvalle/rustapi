@@ -1,7 +1,9 @@
 use axum::{
   async_trait,
-  extract::{FromRequest, RequestParts, TypedHeader},
+  extract::{FromRequestParts, TypedHeader},
   headers::{authorization::Bearer, Authorization},
+  http::request::Parts,
+  RequestPartsExt,
 };
 
 use crate::errors::AuthenticateError;
@@ -11,17 +13,17 @@ use crate::utils::token;
 use crate::utils::token::TokenUser;
 
 #[async_trait]
-impl<B> FromRequest<B> for TokenUser
+impl<S> FromRequestParts<S> for TokenUser
 where
-  B: Send,
+  S: Send + Sync,
 {
   type Rejection = Error;
 
-  async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
-    let TypedHeader(Authorization(bearer)) =
-      TypedHeader::<Authorization<Bearer>>::from_request(req)
-        .await
-        .map_err(|_| AuthenticateError::InvalidToken)?;
+  async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+    let TypedHeader(Authorization(bearer)) = parts
+      .extract::<TypedHeader<Authorization<Bearer>>>()
+      .await
+      .map_err(|_| AuthenticateError::InvalidToken)?;
 
     let secret = SETTINGS.auth.secret.as_str();
     let token_data =
