@@ -43,7 +43,7 @@ impl Settings {
 
     let mut builder = Config::builder()
       .add_source(File::with_name("config/default"))
-      .add_source(File::with_name(&format!("config/{}", run_mode)).required(false))
+      .add_source(File::with_name(&format!("config/{run_mode}")).required(false))
       .add_source(File::with_name("config/local").required(false))
       .add_source(Environment::default().separator("__"));
 
