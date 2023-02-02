@@ -1,7 +1,7 @@
 use axum::Router;
 use http::header;
 use tower_http::{
-  compression::CompressionLayer, propagate_header::PropagateHeaderLayer,
+  compression::CompressionLayer, cors::CorsLayer, propagate_header::PropagateHeaderLayer,
   sensitive_headers::SetSensitiveHeadersLayer, trace,
 };
 
@@ -17,6 +17,8 @@ pub async fn create_app() -> Router {
     .expect("Failed to sync database indexes");
 
   Router::new()
+    // CORS configuration. This should probably be more restrictive in
+    // production.
     .merge(routes::status::create_route())
     .merge(routes::user::create_route())
     .merge(Router::new().nest(
@@ -42,4 +44,5 @@ pub async fn create_app() -> Router {
     .layer(PropagateHeaderLayer::new(header::HeaderName::from_static(
       "x-request-id",
     )))
+    .layer(CorsLayer::permissive())
 }
