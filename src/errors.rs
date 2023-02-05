@@ -17,7 +17,7 @@ pub enum Error {
   #[error("{0}")]
   Mongo(#[from] MongoError),
 
-  #[error("Error parsing Object ID {0}")]
+  #[error("Error parsing ObjectID {0}")]
   ParseObjectID(String),
 
   #[error("{0}")]
