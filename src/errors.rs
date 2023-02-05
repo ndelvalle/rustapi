@@ -17,8 +17,8 @@ pub enum Error {
   #[error("{0}")]
   Mongo(#[from] MongoError),
 
-  #[error("{0}")]
-  ParseObjectID(#[from] bson::oid::Error),
+  #[error("Error parsing Object ID {0}")]
+  ParseObjectID(String),
 
   #[error("{0}")]
   SerializeMongoResponse(#[from] bson::de::Error),
