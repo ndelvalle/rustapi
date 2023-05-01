@@ -10,4 +10,4 @@
 
 # Environment variables
 .env
-config/local
+config/local.json
