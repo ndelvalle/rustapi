@@ -66,7 +66,7 @@ To use this template as your project starting point, click "Use this template" a
 ### Test
 To run tests make sure MongoDB is up and running.
 ```
-./test.sh
+make test
 ``` 
 
 ## Contributing
