@@ -12,7 +12,6 @@ use crate::utils::date::Date;
 use crate::utils::models::ModelExt;
 
 impl ModelExt for User {
-  type T = User;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, WitherModel, Validate)]

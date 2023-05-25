@@ -10,7 +10,6 @@ use crate::utils::date::Date;
 use crate::utils::models::ModelExt;
 
 impl ModelExt for Cat {
-  type T = Cat;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, WitherModel, Validate)]
