@@ -11,8 +11,7 @@ use crate::utils::date;
 use crate::utils::date::Date;
 use crate::utils::models::ModelExt;
 
-impl ModelExt for User {
-}
+impl ModelExt for User {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, WitherModel, Validate)]
 #[model(index(keys = r#"doc!{ "email": 1 }"#, options = r#"doc!{ "unique": true }"#))]
