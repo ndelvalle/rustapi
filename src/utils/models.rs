@@ -23,10 +23,11 @@ use crate::errors::Error;
 // This is the Model trait. All models that have a MongoDB collection should
 // implement this and therefore inherit theses methods.
 #[async_trait]
-pub trait ModelExt {
-  type T: WitherModel + Send + Validate;
-
-  async fn create(mut model: Self::T) -> Result<Self::T, Error> {
+pub trait ModelExt
+where
+  Self: WitherModel + Validate,
+{
+  async fn create(mut model: Self) -> Result<Self, Error> {
     let connection = CONNECTION.get().await;
     model.validate().map_err(|_error| Error::bad_request())?;
     model.save(connection, None).await.map_err(Error::Wither)?;
@@ -34,77 +35,74 @@ pub trait ModelExt {
     Ok(model)
   }
 
-  async fn find_by_id(id: &ObjectId) -> Result<Option<Self::T>, Error> {
+  async fn find_by_id(id: &ObjectId) -> Result<Option<Self>, Error> {
     let connection = CONNECTION.get().await;
-    Self::T::find_one(connection, doc! { "_id": id }, None)
+    <Self as WitherModel>::find_one(connection, doc! { "_id": id }, None)
       .await
       .map_err(Error::Wither)
   }
 
-  async fn find_one<O>(query: Document, options: O) -> Result<Option<Self::T>, Error>
+  async fn find_one<O>(query: Document, options: O) -> Result<Option<Self>, Error>
   where
     O: Into<Option<FindOneOptions>> + Send,
   {
     let connection = CONNECTION.get().await;
-    Self::T::find_one(connection, query, options)
+    <Self as WitherModel>::find_one(connection, query, options)
       .await
       .map_err(Error::Wither)
   }
 
-  async fn find<O>(query: Document, options: O) -> Result<Vec<Self::T>, Error>
+  async fn find<O>(query: Document, options: O) -> Result<Vec<Self>, Error>
   where
     O: Into<Option<FindOptions>> + Send,
   {
     let connection = CONNECTION.get().await;
-    Self::T::find(connection, query, options)
+    <Self as WitherModel>::find(connection, query, options)
       .await
       .map_err(Error::Wither)?
-      .try_collect::<Vec<Self::T>>()
+      .try_collect::<Vec<Self>>()
       .await
       .map_err(Error::Wither)
   }
 
-  async fn find_and_count<O>(query: Document, options: O) -> Result<(Vec<Self::T>, u64), Error>
+  async fn find_and_count<O>(query: Document, options: O) -> Result<(Vec<Self>, u64), Error>
   where
     O: Into<Option<FindOptions>> + Send,
   {
     let connection = CONNECTION.get().await;
 
-    let count = Self::T::collection(connection)
+    let count = Self::collection(connection)
       .count_documents(query.clone(), None)
       .await
       .map_err(Error::Mongo)?;
 
-    let items = Self::T::find(connection, query, options.into())
+    let items = <Self as WitherModel>::find(connection, query, options.into())
       .await
       .map_err(Error::Wither)?
-      .try_collect::<Vec<Self::T>>()
+      .try_collect::<Vec<Self>>()
       .await
       .map_err(Error::Wither)?;
 
     Ok((items, count))
   }
 
-  async fn cursor<O>(query: Document, options: O) -> Result<ModelCursor<Self::T>, Error>
+  async fn cursor<O>(query: Document, options: O) -> Result<ModelCursor<Self>, Error>
   where
     O: Into<Option<FindOptions>> + Send,
   {
     let connection = CONNECTION.get().await;
-    Self::T::find(connection, query, options)
+    <Self as WitherModel>::find(connection, query, options)
       .await
       .map_err(Error::Wither)
   }
 
-  async fn find_one_and_update(
-    query: Document,
-    update: Document,
-  ) -> Result<Option<Self::T>, Error> {
+  async fn find_one_and_update(query: Document, update: Document) -> Result<Option<Self>, Error> {
     let connection = CONNECTION.get().await;
     let options = FindOneAndUpdateOptions::builder()
       .return_document(ReturnDocument::After)
       .build();
 
-    Self::T::find_one_and_update(connection, query, update, options)
+    <Self as WitherModel>::find_one_and_update(connection, query, update, options)
       .await
       .map_err(Error::Wither)
   }
@@ -118,7 +116,7 @@ pub trait ModelExt {
     O: Into<Option<UpdateOptions>> + Send,
   {
     let connection = CONNECTION.get().await;
-    Self::T::collection(connection)
+    Self::collection(connection)
       .update_one(query, update, options)
       .await
       .map_err(Error::Mongo)
@@ -133,7 +131,7 @@ pub trait ModelExt {
     O: Into<Option<UpdateOptions>> + Send,
   {
     let connection = CONNECTION.get().await;
-    Self::T::collection(connection)
+    Self::collection(connection)
       .update_many(query, update, options)
       .await
       .map_err(Error::Mongo)
@@ -141,14 +139,14 @@ pub trait ModelExt {
 
   async fn delete_many(query: Document) -> Result<DeleteResult, Error> {
     let connection = CONNECTION.get().await;
-    Self::T::delete_many(connection, query, None)
+    <Self as WitherModel>::delete_many(connection, query, None)
       .await
       .map_err(Error::Wither)
   }
 
   async fn delete_one(query: Document) -> Result<DeleteResult, Error> {
     let connection = CONNECTION.get().await;
-    Self::T::collection(connection)
+    Self::collection(connection)
       .delete_one(query, None)
       .await
       .map_err(Error::Mongo)
@@ -156,7 +154,7 @@ pub trait ModelExt {
 
   async fn count(query: Document) -> Result<u64, Error> {
     let connection = CONNECTION.get().await;
-    Self::T::collection(connection)
+    Self::collection(connection)
       .count_documents(query, None)
       .await
       .map_err(Error::Mongo)
@@ -164,7 +162,7 @@ pub trait ModelExt {
 
   async fn exists(query: Document) -> Result<bool, Error> {
     let connection = CONNECTION.get().await;
-    let count = Self::T::collection(connection)
+    let count = Self::collection(connection)
       .count_documents(query, None)
       .await
       .map_err(Error::Mongo)?;
@@ -178,7 +176,7 @@ pub trait ModelExt {
   {
     let connection = CONNECTION.get().await;
 
-    let documents = Self::T::collection(connection)
+    let documents = Self::collection(connection)
       .aggregate(pipeline, None)
       .await
       .map_err(Error::Mongo)?
@@ -197,6 +195,6 @@ pub trait ModelExt {
 
   async fn sync_indexes() -> Result<(), Error> {
     let connection = CONNECTION.get().await;
-    Self::T::sync(connection).await.map_err(Error::Wither)
+    Self::sync(connection).await.map_err(Error::Wither)
   }
 }

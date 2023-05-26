@@ -9,9 +9,7 @@ use crate::utils::date;
 use crate::utils::date::Date;
 use crate::utils::models::ModelExt;
 
-impl ModelExt for Cat {
-  type T = Cat;
-}
+impl ModelExt for Cat {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, WitherModel, Validate)]
 #[model(index(keys = r#"doc!{ "user": 1, "created_at": 1 }"#))]
