@@ -9,6 +9,9 @@ use crate::tests::utils::create_user;
 use crate::tests::utils::create_user_token;
 use crate::utils::models::ModelExt;
 
+#[cfg(test)]
+use pretty_assertions::{assert_eq, assert_ne};
+
 #[test]
 fn post_cat_route() {
   #[derive(Debug, Serialize, Deserialize)]

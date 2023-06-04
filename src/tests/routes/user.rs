@@ -7,6 +7,9 @@ use crate::routes::user::AuthenticateResponse;
 use crate::tests::setup::use_app;
 use crate::tests::utils::create_user;
 
+#[cfg(test)]
+use pretty_assertions{assert_eq, assert_ne};
+
 #[test]
 fn post_user_route() {
   #[derive(Debug, Serialize, Deserialize)]
