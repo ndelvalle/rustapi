@@ -7,7 +7,7 @@ use serde_json::Value as Json;
 use crate::tests::setup::use_app;
 
 #[cfg(test)]
-use pretty_assertions::{assert_eq, assert_ne};
+use pretty_assertions::assert_eq;
 
 #[test]
 fn get_status_route() {

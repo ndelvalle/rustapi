@@ -8,7 +8,7 @@ use crate::tests::setup::use_app;
 use crate::tests::utils::create_user;
 
 #[cfg(test)]
-use pretty_assertions{assert_eq, assert_ne};
+use pretty_assertions::assert_eq;
 
 #[test]
 fn post_user_route() {
