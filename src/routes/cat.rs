@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum::{
-  extract::{Path, Query},
+  extract::Path,
   routing::{delete, get, post, put},
   Json, Router,
 };
@@ -11,10 +11,10 @@ use wither::mongodb::options::FindOptions;
 
 use crate::errors::Error;
 use crate::models::cat::{Cat, PublicCat};
-use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder};
+use crate::utils::custom_response::CustomResponseResult as Response;
+use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder, ResponsePagination};
 use crate::utils::models::ModelExt;
 use crate::utils::pagination::Pagination;
-use crate::utils::request_query::RequestQuery;
 use crate::utils::to_object_id::to_object_id;
 use crate::utils::token::TokenUser;
 
@@ -27,10 +27,7 @@ pub fn create_route() -> Router {
     .route("/cats/:id", put(update_cat_by_id))
 }
 
-async fn create_cat(
-  user: TokenUser,
-  Json(payload): Json<CreateCat>,
-) -> Result<CustomResponse<PublicCat>, Error> {
+async fn create_cat(user: TokenUser, Json(payload): Json<CreateCat>) -> Response<PublicCat> {
   let cat = Cat::new(user.id, payload.name);
   let cat = Cat::create(cat).await?;
   let res = PublicCat::from(cat);
@@ -43,12 +40,7 @@ async fn create_cat(
   Ok(res)
 }
 
-async fn query_cats(
-  user: TokenUser,
-  Query(query): Query<RequestQuery>,
-) -> Result<CustomResponse<Vec<PublicCat>>, Error> {
-  let pagination = Pagination::build_from_request_query(query);
-
+async fn query_cats(user: TokenUser, pagination: Pagination) -> Response<Vec<PublicCat>> {
   let options = FindOptions::builder()
     .sort(doc! { "created_at": -1_i32 })
     .skip(pagination.offset)
@@ -60,7 +52,11 @@ async fn query_cats(
 
   let res = CustomResponseBuilder::new()
     .body(cats)
-    .pagination(pagination.count(count).build())
+    .pagination(ResponsePagination {
+      count,
+      offset: pagination.offset,
+      limit: pagination.limit,
+    })
     .build();
 
   debug!("Returning cats");

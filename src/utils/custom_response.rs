@@ -1,25 +1,34 @@
 use axum::{
-  http::header::{self, HeaderName, HeaderValue},
+  http::header::{self, HeaderValue},
   http::StatusCode,
-  response::{IntoResponse, Response},
+  response::{IntoResponse, IntoResponseParts, Response, ResponseParts},
 };
 use bytes::{BufMut, BytesMut};
 use serde::Serialize;
 use tracing::error;
 
-use crate::utils::pagination::Pagination;
+use crate::errors::Error;
+
+pub type CustomResponseResult<T> = Result<CustomResponse<T>, Error>;
 
 #[derive(Debug)]
 pub struct CustomResponse<T: Serialize> {
   pub body: Option<T>,
   pub status_code: StatusCode,
-  pub pagination: Option<Pagination>,
+  pub pagination: Option<ResponsePagination>,
 }
 
 pub struct CustomResponseBuilder<T: Serialize> {
   pub body: Option<T>,
   pub status_code: StatusCode,
-  pub pagination: Option<Pagination>,
+  pub pagination: Option<ResponsePagination>,
+}
+
+#[derive(Debug)]
+pub struct ResponsePagination {
+  pub count: u64,
+  pub offset: u64,
+  pub limit: u32,
 }
 
 impl<T> Default for CustomResponseBuilder<T>
@@ -53,7 +62,7 @@ where
     self
   }
 
-  pub fn pagination(mut self, pagination: Pagination) -> Self {
+  pub fn pagination(mut self, pagination: ResponsePagination) -> Self {
     self.pagination = Some(pagination);
     self
   }
@@ -83,42 +92,35 @@ where
       return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
     }
 
+    let bytes = bytes.into_inner().freeze();
+    let headers = [(
+      header::CONTENT_TYPE,
+      HeaderValue::from_static(mime::APPLICATION_JSON.as_ref()),
+    )];
+
     match self.pagination {
-      Some(pagination) => {
-        let count = pagination.count.to_string();
-        let offset = pagination.offset.to_string();
-        let limit = pagination.limit.to_string();
-        let headers = [
-          (
-            header::CONTENT_TYPE,
-            HeaderValue::from_static(mime::APPLICATION_JSON.as_ref()),
-          ),
-          (
-            HeaderName::from_static("x-pagination-count"),
-            HeaderValue::from_str(&count).unwrap(),
-          ),
-          (
-            HeaderName::from_static("x-pagination-offset"),
-            HeaderValue::from_str(&offset).unwrap(),
-          ),
-          (
-            HeaderName::from_static("x-pagination-limit"),
-            HeaderValue::from_str(&limit).unwrap(),
-          ),
-        ];
-
-        let bytes = bytes.into_inner().freeze();
-        (self.status_code, headers, bytes).into_response()
-      }
-      None => {
-        let headers = [(
-          header::CONTENT_TYPE,
-          HeaderValue::from_static(mime::APPLICATION_JSON.as_ref()),
-        )];
-
-        let bytes = bytes.into_inner().freeze();
-        (self.status_code, headers, bytes).into_response()
-      }
+      Some(pagination) => (self.status_code, pagination, headers, bytes).into_response(),
+      None => (self.status_code, headers, bytes).into_response(),
     }
+  }
+}
+
+impl IntoResponseParts for ResponsePagination {
+  type Error = (StatusCode, String);
+
+  fn into_response_parts(self, mut res: ResponseParts) -> Result<ResponseParts, Self::Error> {
+    res
+      .headers_mut()
+      .insert("x-pagination-count", self.count.into());
+
+    res
+      .headers_mut()
+      .insert("x-pagination-offset", self.offset.into());
+
+    res
+      .headers_mut()
+      .insert("x-pagination-limit", self.limit.into());
+
+    Ok(res)
   }
 }

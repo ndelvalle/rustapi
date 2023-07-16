@@ -10,7 +10,7 @@ use crate::tests::utils::create_user_token;
 use crate::utils::models::ModelExt;
 
 #[cfg(test)]
-use pretty_assertions::{assert_eq, assert_ne};
+use pretty_assertions::assert_eq;
 
 #[test]
 fn post_cat_route() {
