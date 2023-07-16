@@ -1,63 +1,48 @@
-use serde::Serialize;
+use async_trait::async_trait;
+use axum::extract::{FromRequestParts, Query};
+use axum::http::{request::Parts, StatusCode};
+use serde::Deserialize;
 
-use crate::utils::request_query::RequestQuery;
-
-const LIMIT: u64 = 100;
-const OFFSET: u64 = 0;
-
-#[derive(Debug, Serialize)]
-pub struct Pagination {
-  pub count: u64,
-  pub offset: u64,
-  pub limit: u64,
+#[derive(Debug, Clone, Deserialize)]
+struct Limit {
+  limit: u32,
 }
 
-impl Pagination {
-  pub fn build_from_request_query(query: RequestQuery) -> PaginationBuilder {
-    let limit = query
-      .limit
-      // Make sure the requested limit is not greater than the maximum allowed
-      // limit.
-      .map(|limit| std::cmp::min(limit, LIMIT))
-      .unwrap_or(LIMIT);
-
-    let offset = query.offset.unwrap_or(OFFSET);
-
-    PaginationBuilder {
-      count: None,
-      offset,
-      limit,
-    }
-  }
-}
-
-pub struct PaginationBuilder {
-  pub count: Option<u64>,
-  pub offset: u64,
-  pub limit: u64,
-}
-
-impl Default for PaginationBuilder {
+impl Default for Limit {
   fn default() -> Self {
-    Self {
-      count: None,
-      offset: OFFSET,
-      limit: LIMIT,
-    }
+    Self { limit: 100}
   }
 }
 
-impl PaginationBuilder {
-  pub fn count(mut self, count: u64) -> Self {
-    self.count = Some(count);
-    self
-  }
+#[derive(Debug, Clone, Default, Deserialize)]
+struct Offset {
+  offset: u64,
+}
 
-  pub fn build(self) -> Pagination {
-    Pagination {
-      count: self.count.expect("Pagination count to be set"),
-      offset: self.offset,
-      limit: self.limit,
-    }
+#[derive(Debug, Clone)]
+pub struct Pagination {
+  /// The number of documents to skip before counting.
+  pub offset: u64,
+  /// The maximum number of documents to query.
+  pub limit: u32,
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for Pagination
+where
+  S: Send + Sync,
+{
+  type Rejection = (StatusCode, &'static str);
+
+  async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    let Query(Limit { limit }) = Query::<Limit>::from_request_parts(parts, state)
+      .await
+      .unwrap_or_default();
+
+    let Query(Offset { offset }) = Query::<Offset>::from_request_parts(parts, state)
+      .await
+      .unwrap_or_default();
+
+    Ok(Self { limit, offset })
   }
 }
