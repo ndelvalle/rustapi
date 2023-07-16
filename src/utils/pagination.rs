@@ -1,3 +1,6 @@
+// Original author: Christian Gill (@gillchristian)
+// From: https://gist.github.com/gillchristian/db76e712cc02bff620b86f0cd2bfb691
+
 use async_trait::async_trait;
 use axum::extract::{FromRequestParts, Query};
 use axum::http::{request::Parts, StatusCode};
@@ -10,7 +13,7 @@ struct Limit {
 
 impl Default for Limit {
   fn default() -> Self {
-    Self { limit: 100}
+    Self { limit: 100 }
   }
 }
 
