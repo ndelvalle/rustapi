@@ -153,7 +153,6 @@ where
   }
 
   async fn count(query: Document) -> Result<u64, Error> {
-    // let connection = CONNECTION.get().await;
     let connection = database::connection().await;
     Self::collection(connection)
       .count_documents(query, None)
