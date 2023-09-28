@@ -37,7 +37,6 @@ validator = { version = "0.16.1", features = ["derive"] }
 lazy_static = "1.4.0"
 mime = "0.3.17"
 bytes = "1.4.0"
-async_once = "0.2.6"
 
 [dev-dependencies]
 assert-json-diff = "2.0.2"
