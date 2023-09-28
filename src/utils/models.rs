@@ -17,7 +17,7 @@ use wither::mongodb::results::UpdateResult;
 use wither::Model as WitherModel;
 use wither::ModelCursor;
 
-use crate::database::CONNECTION;
+use crate::database;
 use crate::errors::Error;
 
 // This is the Model trait. All models that have a MongoDB collection should
@@ -28,7 +28,7 @@ where
   Self: WitherModel + Validate,
 {
   async fn create(mut model: Self) -> Result<Self, Error> {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     model.validate().map_err(|_error| Error::bad_request())?;
     model.save(connection, None).await.map_err(Error::Wither)?;
 
@@ -36,7 +36,7 @@ where
   }
 
   async fn find_by_id(id: &ObjectId) -> Result<Option<Self>, Error> {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     <Self as WitherModel>::find_one(connection, doc! { "_id": id }, None)
       .await
       .map_err(Error::Wither)
@@ -46,7 +46,7 @@ where
   where
     O: Into<Option<FindOneOptions>> + Send,
   {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     <Self as WitherModel>::find_one(connection, query, options)
       .await
       .map_err(Error::Wither)
@@ -56,7 +56,7 @@ where
   where
     O: Into<Option<FindOptions>> + Send,
   {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     <Self as WitherModel>::find(connection, query, options)
       .await
       .map_err(Error::Wither)?
@@ -69,7 +69,7 @@ where
   where
     O: Into<Option<FindOptions>> + Send,
   {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
 
     let count = Self::collection(connection)
       .count_documents(query.clone(), None)
@@ -90,14 +90,14 @@ where
   where
     O: Into<Option<FindOptions>> + Send,
   {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     <Self as WitherModel>::find(connection, query, options)
       .await
       .map_err(Error::Wither)
   }
 
   async fn find_one_and_update(query: Document, update: Document) -> Result<Option<Self>, Error> {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     let options = FindOneAndUpdateOptions::builder()
       .return_document(ReturnDocument::After)
       .build();
@@ -115,7 +115,7 @@ where
   where
     O: Into<Option<UpdateOptions>> + Send,
   {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     Self::collection(connection)
       .update_one(query, update, options)
       .await
@@ -130,7 +130,7 @@ where
   where
     O: Into<Option<UpdateOptions>> + Send,
   {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     Self::collection(connection)
       .update_many(query, update, options)
       .await
@@ -138,14 +138,14 @@ where
   }
 
   async fn delete_many(query: Document) -> Result<DeleteResult, Error> {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     <Self as WitherModel>::delete_many(connection, query, None)
       .await
       .map_err(Error::Wither)
   }
 
   async fn delete_one(query: Document) -> Result<DeleteResult, Error> {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     Self::collection(connection)
       .delete_one(query, None)
       .await
@@ -153,7 +153,7 @@ where
   }
 
   async fn count(query: Document) -> Result<u64, Error> {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     Self::collection(connection)
       .count_documents(query, None)
       .await
@@ -161,7 +161,7 @@ where
   }
 
   async fn exists(query: Document) -> Result<bool, Error> {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     let count = Self::collection(connection)
       .count_documents(query, None)
       .await
@@ -174,7 +174,7 @@ where
   where
     A: Serialize + DeserializeOwned,
   {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
 
     let documents = Self::collection(connection)
       .aggregate(pipeline, None)
@@ -194,7 +194,7 @@ where
   }
 
   async fn sync_indexes() -> Result<(), Error> {
-    let connection = CONNECTION.get().await;
+    let connection = database::connection().await;
     Self::sync(connection).await.map_err(Error::Wither)
   }
 }
