@@ -17,7 +17,7 @@ thiserror = "1.0.50"
 axum = { version = "0.6.20", features = ["headers"] }
 tokio = { version = "1.33.0", features = ["full"] }
 tracing = "0.1.40"
-tracing-subscriber = "0.3.17"
+tracing-subscriber = "0.3.18"
 tower-http = { version = "0.4.4", features = [
     "trace",
     "compression-br",
