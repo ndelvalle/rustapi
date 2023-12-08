@@ -31,7 +31,7 @@ async-trait = "0.1.74"
 # Investigate if wither::bson can be used instead and activate this feature.
 bson = { version = "2.7.0", features = ["serde_with", "chrono-0_4"] }
 jsonwebtoken = "8.3.0"
-once_cell = "1.18.0"
+once_cell = "1.19.0"
 bcrypt = "0.15.0"
 validator = { version = "0.16.1", features = ["derive"] }
 lazy_static = "1.4.0"
