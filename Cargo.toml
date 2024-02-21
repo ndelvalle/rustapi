@@ -7,7 +7,7 @@ edition = "2021"
 [dependencies]
 config = "0.14.0"
 serde = { version = "1.0.196", features = ["derive"] }
-serde_json = "1.0.113"
+serde_json = "1.0.114"
 serde_derive = "1.0.152"
 # Wait for wither to relase a new version.
 # https://github.com/thedodd/wither/pull/89#issuecomment-1023644443
