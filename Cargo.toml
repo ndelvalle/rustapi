@@ -36,7 +36,7 @@ bcrypt = "0.15.1"
 validator = { version = "0.17.0", features = ["derive"] }
 lazy_static = "1.4.0"
 mime = "0.3.17"
-bytes = "1.5.0"
+bytes = "1.6.0"
 
 [dev-dependencies]
 assert-json-diff = "2.0.2"
