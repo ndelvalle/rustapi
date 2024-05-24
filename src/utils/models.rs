@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use async_trait::async_trait;
 use futures::stream::TryStreamExt;
 use serde::{de::DeserializeOwned, ser::Serialize};
