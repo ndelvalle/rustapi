@@ -1,11 +1,11 @@
 use config::{Config, ConfigError, Environment, File};
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::{env, fmt};
 
-lazy_static! {
-  pub static ref SETTINGS: Settings = Settings::new().expect("Failed to setup settings");
-}
+pub static SETTINGS: Lazy<Settings> = Lazy::new(|| {
+  Settings::new().expect("Failed to setup settings")
+});
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Server {
