@@ -1919,7 +1919,6 @@ dependencies = [
  "futures",
  "http 0.2.9",
  "jsonwebtoken",
- "lazy_static",
  "mime",
  "once_cell",
  "pretty_assertions",

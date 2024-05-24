@@ -1,5 +1,5 @@
 use bson::doc;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use std::net::SocketAddr;
 use tokio::runtime::Runtime;
 use tokio::sync::OnceCell;
@@ -11,6 +11,7 @@ use crate::settings::SETTINGS;
 use crate::utils::models::ModelExt;
 
 static API: OnceCell<()> = OnceCell::const_new();
+static RUNTIME: Lazy<Runtime> = Lazy::new(|| Runtime::new().unwrap());
 
 pub async fn start_api_once() {
   API
@@ -29,10 +30,6 @@ pub async fn start_api_once() {
       });
     })
     .await;
-}
-
-lazy_static! {
-  static ref RUNTIME: Runtime = Runtime::new().unwrap();
 }
 
 pub fn use_app<F>(test: F)
