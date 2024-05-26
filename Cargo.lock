@@ -1917,7 +1917,6 @@ dependencies = [
  "chrono",
  "config",
  "futures",
- "http 1.1.0",
  "jsonwebtoken",
  "mime",
  "once_cell",
