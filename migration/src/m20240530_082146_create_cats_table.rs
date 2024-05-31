@@ -24,13 +24,7 @@ impl MigrationTrait for Migration {
         Table::create()
           .table(Cat::Table)
           .if_not_exists()
-          .col(
-            ColumnDef::new(Cat::Id)
-              .integer()
-              .not_null()
-              .auto_increment()
-              .primary_key(),
-          )
+          .col(ColumnDef::new(Cat::Id).uuid().not_null().primary_key())
           .col(ColumnDef::new(Cat::Name).string().not_null())
           .col(
             ColumnDef::new(Cat::CreatedAt)
@@ -44,6 +38,7 @@ impl MigrationTrait for Migration {
               .not_null()
               .default(Expr::current_timestamp()),
           )
+          .col(ColumnDef::new(Cat::User).uuid().not_null())
           .foreign_key(
             ForeignKey::create()
               .from(Cat::Table, Cat::User)
