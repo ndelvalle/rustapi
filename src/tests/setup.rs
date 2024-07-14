@@ -14,34 +14,33 @@ static API: OnceCell<()> = OnceCell::const_new();
 static RUNTIME: Lazy<Runtime> = Lazy::new(|| Runtime::new().unwrap());
 
 pub async fn start_api_once() {
-  API
-    .get_or_init(|| async {
-      std::env::set_var("RUN_MODE", "test");
+    API.get_or_init(|| async {
+        std::env::set_var("RUN_MODE", "test");
 
-      let app = create_app().await;
-      let port = SETTINGS.server.port;
-      let address = SocketAddr::from(([127, 0, 0, 1], port));
+        let app = create_app().await;
+        let port = SETTINGS.server.port;
+        let address = SocketAddr::from(([127, 0, 0, 1], port));
 
-      tokio::spawn(async move {
-        axum::Server::bind(&address)
-          .serve(app.into_make_service())
-          .await
-          .expect("Failed to start server");
-      });
+        tokio::spawn(async move {
+            axum::Server::bind(&address)
+                .serve(app.into_make_service())
+                .await
+                .expect("Failed to start server");
+        });
     })
     .await;
 }
 
 pub fn use_app<F>(test: F)
 where
-  F: std::future::Future,
+    F: std::future::Future,
 {
-  RUNTIME.block_on(async move {
-    start_api_once().await;
+    RUNTIME.block_on(async move {
+        start_api_once().await;
 
-    Cat::delete_many(doc! {}).await.unwrap();
-    User::delete_many(doc! {}).await.unwrap();
+        Cat::delete_many(doc! {}).await.unwrap();
+        User::delete_many(doc! {}).await.unwrap();
 
-    test.await;
-  })
+        test.await;
+    })
 }

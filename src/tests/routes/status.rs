@@ -11,19 +11,19 @@ use pretty_assertions::assert_eq;
 
 #[test]
 fn get_status_route() {
-  use_app(async {
-    let res = reqwest::get("http://localhost:8088/status").await.unwrap();
-    let status_code = res.status();
-    let body = res.json::<Json>().await.unwrap();
+    use_app(async {
+        let res = reqwest::get("http://localhost:8088/status").await.unwrap();
+        let status_code = res.status();
+        let body = res.json::<Json>().await.unwrap();
 
-    // Status code:
-    let actual = status_code;
-    let expected = StatusCode::OK;
-    assert_eq!(actual, expected);
+        // Status code:
+        let actual = status_code;
+        let expected = StatusCode::OK;
+        assert_eq!(actual, expected);
 
-    // Body:
-    let actual = body;
-    let expected = json!({ "status": "ok" });
-    assert_json_eq!(actual, expected);
-  });
+        // Body:
+        let actual = body;
+        let expected = json!({ "status": "ok" });
+        assert_json_eq!(actual, expected);
+    });
 }

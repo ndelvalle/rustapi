@@ -23,14 +23,14 @@ use settings::SETTINGS;
 
 #[tokio::main]
 async fn main() {
-  let app = app::create_app().await;
+    let app = app::create_app().await;
 
-  let port = SETTINGS.server.port;
-  let address = SocketAddr::from(([127, 0, 0, 1], port));
+    let port = SETTINGS.server.port;
+    let address = SocketAddr::from(([127, 0, 0, 1], port));
 
-  info!("Server listening on {}", &address);
-  axum::Server::bind(&address)
-    .serve(app.into_make_service())
-    .await
-    .expect("Failed to start server");
+    info!("Server listening on {}", &address);
+    axum::Server::bind(&address)
+        .serve(app.into_make_service())
+        .await
+        .expect("Failed to start server");
 }

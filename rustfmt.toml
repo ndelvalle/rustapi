@@ -1,6 +1,0 @@
-# rustfmt configurations from master branch, check rustfmt version
-# (cargo fmt --version).
-# https://github.com/rust-lang/rustfmt/blob/master/Configurations.md
-
-edition = "2021"
-tab_spaces = 2
