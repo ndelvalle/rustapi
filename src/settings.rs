@@ -27,6 +27,9 @@ pub struct Auth {
     pub secret: String,
 }
 
+// Remove the #[allow(dead_code)] attribute from the Settings struct when all the fields are being
+// used.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct Settings {
     pub environment: String,
