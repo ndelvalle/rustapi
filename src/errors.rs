@@ -2,6 +2,7 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use bcrypt::BcryptError;
+use sea_orm::error::DbErr as DatabaseError;
 use serde_json::json;
 use tokio::task::JoinError;
 use wither::bson;
@@ -13,6 +14,9 @@ use wither::WitherError;
 pub enum Error {
   #[error("{0}")]
   Wither(#[from] WitherError),
+
+  #[error("{0}")]
+  DatabaseError(#[from] DatabaseError),
 
   #[error("{0}")]
   Mongo(#[from] MongoError),
@@ -59,6 +63,7 @@ impl Error {
       Error::SerializeMongoResponse(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5004),
       Error::RunSyncTask(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5005),
       Error::HashPassword(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5006),
+      Error::DatabaseError(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5007),
     }
   }
 
