@@ -4,14 +4,18 @@ version = "0.1.0"
 authors = ["ndelvalle <nicolas.delvalle@gmail.com>"]
 edition = "2021"
 
+[workspace]
+members = [".", "entity", "migration"]
+
+
 [dependencies]
+entity = { path = "entity" }
+migration = { path = "migration" } # depends on your needs
+
 config = "0.14.0"
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.116"
 serde_derive = "1.0.152"
-# Wait for wither to relase a new version.
-# https://github.com/thedodd/wither/pull/89#issuecomment-1023644443
-wither = { git = "https://github.com/thedodd/wither", rev = "52fd503" }
 futures = "0.3.30"
 thiserror = "1.0.61"
 axum = { version = "0.6.20", features = ["headers"] }
@@ -35,6 +39,7 @@ bcrypt = "0.15.1"
 validator = { version = "0.18.1", features = ["derive"] }
 mime = "0.3.17"
 bytes = "1.6.0"
+sea-orm = "0.12.15"
 
 [dev-dependencies]
 assert-json-diff = "2.0.2"
