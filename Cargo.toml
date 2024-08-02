@@ -34,7 +34,7 @@ once_cell = "1.19.0"
 bcrypt = "0.15.1"
 validator = { version = "0.18.1", features = ["derive"] }
 mime = "0.3.17"
-bytes = "1.6.1"
+bytes = "1.7.1"
 
 [dev-dependencies]
 assert-json-diff = "2.0.2"
