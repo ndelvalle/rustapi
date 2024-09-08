@@ -1,16 +1,15 @@
-use axum::{
-    async_trait,
-    extract::{FromRequestParts, TypedHeader},
-    headers::{authorization::Bearer, Authorization},
-    http::request::Parts,
-    RequestPartsExt,
-};
-
 use crate::errors::AuthenticateError;
 use crate::errors::Error;
 use crate::settings::SETTINGS;
 use crate::utils::token;
 use crate::utils::token::TokenUser;
+
+use axum::{async_trait, extract::FromRequestParts, http::request::Parts, RequestPartsExt};
+
+use axum_extra::{
+    headers::{authorization::Bearer, Authorization},
+    TypedHeader,
+};
 
 #[async_trait]
 impl<S> FromRequestParts<S> for TokenUser

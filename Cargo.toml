@@ -14,11 +14,11 @@ serde_derive = "1.0.152"
 wither = { git = "https://github.com/thedodd/wither", rev = "52fd503" }
 futures = "0.3.30"
 thiserror = "1.0.63"
-axum = { version = "0.6.20", features = ["headers"] }
+axum = { version = "0.7.5" }
 tokio = { version = "1.39.1", features = ["full"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
-tower-http = { version = "0.4.4", features = [
+tower-http = { version = "0.5", features = [
   "trace",
   "compression-br",
   "propagate-header",
@@ -35,6 +35,7 @@ bcrypt = "0.15.1"
 validator = { version = "0.18.1", features = ["derive"] }
 mime = "0.3.17"
 bytes = "1.6.1"
+axum-extra = { version = "0.9.3", features = ["typed-header"] }
 
 [dev-dependencies]
 assert-json-diff = "2.0.2"
