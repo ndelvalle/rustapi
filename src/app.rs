@@ -24,7 +24,6 @@ pub async fn create_app() -> Router {
             // All public v1 routes will be nested here.
             Router::new().merge(routes::cat::create_route()),
         ))
-        //TODO: upgrade
         // High level logging of requests and responses
         .layer(
             trace::TraceLayer::new_for_http()
