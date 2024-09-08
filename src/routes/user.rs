@@ -9,7 +9,6 @@ use crate::models::user;
 use crate::models::user::{PublicUser, User};
 use crate::settings::SETTINGS;
 use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder};
-use crate::utils::models::ModelExt;
 use crate::utils::token;
 
 pub fn create_route() -> Router {
@@ -20,8 +19,8 @@ pub fn create_route() -> Router {
 
 async fn create_user(Json(body): Json<CreateBody>) -> Result<CustomResponse<PublicUser>, Error> {
     let password_hash = user::hash_password(body.password).await?;
-    let user = User::new(body.name, body.email, password_hash);
-    let user = User::create(user).await?;
+    // let user = User::new(body.name, body.email, password_hash);
+    let user = User::create(&body.name, &body.email, &password_hash).await;
     let res = PublicUser::from(user);
 
     let res = CustomResponseBuilder::new()
@@ -48,7 +47,7 @@ async fn authenticate_user(
         return Err(Error::bad_request());
     }
 
-    let user = User::find_one(doc! { "email": email }, None).await?;
+    let user = User::find_by_email(email).await?;
 
     let user = match user {
         Some(user) => user,

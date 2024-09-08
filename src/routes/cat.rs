@@ -13,7 +13,6 @@ use crate::errors::Error;
 use crate::models::cat::{Cat, PublicCat};
 use crate::utils::custom_response::CustomResponseResult as Response;
 use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder, ResponsePagination};
-use crate::utils::models::ModelExt;
 use crate::utils::pagination::Pagination;
 use crate::utils::to_object_id::to_object_id;
 use crate::utils::token::TokenUser;
