@@ -1,6 +1,7 @@
 use bson::doc;
 use once_cell::sync::Lazy;
 use std::net::SocketAddr;
+use tokio::net::TcpListener;
 use tokio::runtime::Runtime;
 use tokio::sync::OnceCell;
 
@@ -20,10 +21,11 @@ pub async fn start_api_once() {
         let app = create_app().await;
         let port = SETTINGS.server.port;
         let address = SocketAddr::from(([127, 0, 0, 1], port));
-
+        let listener = TcpListener::bind(address)
+            .await
+            .expect("error listening on the assigner port");
         tokio::spawn(async move {
-            axum::Server::bind(&address)
-                .serve(app.into_make_service())
+            axum::serve(listener, app)
                 .await
                 .expect("Failed to start server");
         });
