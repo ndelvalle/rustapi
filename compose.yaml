@@ -1,0 +1,38 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+      target: final
+    ports:
+      - 3000:3000
+    environment:
+      - PORT=3000
+      - DB_CONNECTION_URL = postgres://rustapi:RAa6dHNblVoJboG6fyFlbCvlYe7@database
+
+    depends_on:
+      database:
+        condition: service_started
+  # the DB
+  database:
+    image: postgres:15-alpine
+    restart: always
+    shm_size: 100mb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=rustapi.db
+      - POSTGRES_USER=rustapi
+      - POSTGRES_PASSWORD=RAa6dHNblVoJboG6fyFlbCvlYe7
+    expose:
+      - 5432
+    healthcheck:
+      test: [ "CMD", "pg_isready -d rustapi.db rustapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  db-data:
+
+
