@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::net::{Ipv4Addr, SocketAddrV4};
 use tokio::net::TcpListener;
 use tracing::info;
 
@@ -25,7 +25,7 @@ use settings::SETTINGS;
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     let port = SETTINGS.server.port;
-    let address = SocketAddr::from(([127, 0, 0, 1], port));
+    let address = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, port);
 
     let app = app::create_app().await;
 
