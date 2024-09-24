@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["ndelvalle <nicolas.delvalle@gmail.com>"]
 edition = "2021"
 
+[[bin]]
+name ="rustapi"
+path ="./src/main.rs"
+
 [dependencies]
 async-trait = "0.1.81"
 axum = { version = "0.7.5" }
