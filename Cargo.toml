@@ -35,7 +35,7 @@ bcrypt = "0.15.1"
 validator = { version = "0.18.1", features = ["derive"] }
 mime = "0.3.17"
 bytes = "1.7.2"
-axum-extra = { version = "0.9.3", features = ["typed-header"] }
+axum-extra = { version = "0.9.4", features = ["typed-header"] }
 
 [dev-dependencies]
 assert-json-diff = "2.0.2"
