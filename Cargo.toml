@@ -39,5 +39,5 @@ axum-extra = { version = "0.9.3", features = ["typed-header"] }
 
 [dev-dependencies]
 assert-json-diff = "2.0.2"
-reqwest = { version = "0.12.4", features = ["json"] }
+reqwest = { version = "0.12.8", features = ["json"] }
 pretty_assertions = "1.4.1"
