@@ -1,50 +1,70 @@
-use bson::serde_helpers::bson_datetime_as_rfc3339_string;
-use bson::serde_helpers::serialize_object_id_as_hex_string;
+use chrono::{NaiveDateTime, Utc};
+use diesel::associations::Identifiable;
+use diesel::prelude::{Insertable, Queryable, Selectable};
+use diesel::query_dsl::methods::FilterDsl;
+use diesel_async::RunQueryDsl;
 use serde::{Deserialize, Serialize};
 use tokio::task;
 use validator::Validate;
-use wither::bson::{doc, oid::ObjectId};
-use wither::Model as WitherModel;
 
+use crate::database;
 use crate::errors::Error;
-use crate::utils::date;
-use crate::utils::date::Date;
-use crate::utils::models::ModelExt;
+use crate::schema::users;
 
-impl ModelExt for User {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, WitherModel, Validate)]
-#[model(index(keys = r#"doc!{ "email": 1 }"#, options = r#"doc!{ "unique": true }"#))]
+#[derive(Debug, Clone, Serialize, Deserialize, Identifiable, Queryable, Selectable)]
+#[diesel(table_name = crate::schema::users)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
-    #[validate(length(min = 1))]
+    pub id: i32,
     pub name: String,
-    #[validate(email)]
     pub email: String,
     pub password: String,
-    pub updated_at: Date,
-    pub created_at: Date,
-    pub locked_at: Option<Date>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub locked_at: Option<NaiveDateTime>,
+}
+
+#[derive(Debug, Insertable, Validate)]
+#[diesel(table_name = crate::schema::users)]
+pub struct NewUser<'a> {
+    #[validate(length(min = 5))]
+    pub name: &'a str,
+    #[validate(email)]
+    pub email: &'a str,
+    pub password: &'a str,
 }
 
 impl User {
-    pub fn new<A, B, C>(name: A, email: B, password_hash: C) -> Self
-    where
-        A: Into<String>,
-        B: Into<String>,
-        C: Into<String>,
-    {
-        let now = date::now();
-        Self {
-            id: None,
-            name: name.into(),
-            email: email.into(),
-            password: password_hash.into(),
-            updated_at: now,
-            created_at: now,
-            locked_at: None,
-        }
+    pub async fn create(name: &str, email: &str, password_hash: &str) -> User {
+        let now = Utc::now().naive_utc();
+        let new_user = NewUser {
+            name,
+            email,
+            password: password_hash,
+        };
+
+        let mut conn = database::get_connection().await;
+        let user = diesel::insert_into(users::table)
+            .values(&new_user)
+            .get_result::<Self>(&mut conn)
+            .await
+            .expect("Error saving new post");
+
+        user
+    }
+
+    pub async fn find_by_email(value: &str) -> Result<Option<Self>, Error> {
+        use crate::schema::users::dsl::*;
+        use diesel::ExpressionMethods;
+        use diesel::OptionalExtension;
+
+        let mut conn = database::get_connection().await;
+        users
+            .filter(email.eq(value))
+            .first::<User>(&mut conn)
+            .await
+            .optional()
+            .map_err(Error::Diesel)
     }
 
     pub fn is_password_match(&self, password: &str) -> bool {
@@ -54,20 +74,17 @@ impl User {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PublicUser {
-    #[serde(alias = "_id", serialize_with = "serialize_object_id_as_hex_string")]
-    pub id: ObjectId,
+    pub id: i32,
     pub name: String,
     pub email: String,
-    #[serde(with = "bson_datetime_as_rfc3339_string")]
-    pub updated_at: Date,
-    #[serde(with = "bson_datetime_as_rfc3339_string")]
-    pub created_at: Date,
+    pub updated_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
 }
 
 impl From<User> for PublicUser {
     fn from(user: User) -> Self {
         Self {
-            id: user.id.unwrap(),
+            id: user.id,
             name: user.name.clone(),
             email: user.email.clone(),
             updated_at: user.updated_at,

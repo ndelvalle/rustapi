@@ -8,6 +8,7 @@ mod errors;
 mod logger;
 mod models;
 mod routes;
+mod schema;
 mod settings;
 mod utils;
 

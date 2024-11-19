@@ -2,6 +2,7 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use bcrypt::BcryptError;
+use diesel::result::Error as DieselError;
 use serde_json::json;
 use tokio::task::JoinError;
 use wither::bson;
@@ -13,6 +14,9 @@ use wither::WitherError;
 pub enum Error {
     #[error("{0}")]
     Wither(#[from] WitherError),
+
+    #[error("{0}")]
+    Diesel(#[from] DieselError),
 
     #[error("{0}")]
     Mongo(#[from] MongoError),
@@ -59,6 +63,7 @@ impl Error {
                 (StatusCode::INTERNAL_SERVER_ERROR, 5001)
             }
             Error::Wither(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5002),
+            Error::Diesel(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5002),
             Error::Mongo(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5003),
             Error::SerializeMongoResponse(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5004),
             Error::RunSyncTask(_) => (StatusCode::INTERNAL_SERVER_ERROR, 5005),

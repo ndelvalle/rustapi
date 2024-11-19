@@ -1,19 +1,15 @@
 {
   "environment": "development",
-
   "server": {
     "port": 8080
   },
-  
   "database": {
-    "uri": "mongodb://localhost:27017",
+    "uri": "postgresql://localhost:5432",
     "name": "rustapi"
   },
-  
   "auth": {
     "secret": "secret"
   },
-
   "logger": {
     "level": "debug"
   }

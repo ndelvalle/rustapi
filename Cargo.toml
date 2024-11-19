@@ -25,15 +25,17 @@ tower-http = { version = "0.6", features = [
   "sensitive-headers",
   "cors",
 ] }
-chrono = "0.4.38"
+chrono = { version = "0.4", features = ["serde"] }
 async-trait = "0.1.81"
 # Investigate if wither::bson can be used instead and activate this feature.
 bson = { version = "2.10.0", features = ["serde_with", "chrono-0_4"] }
 jsonwebtoken = "9.3.0"
-once_cell = "1.20.0"
+once_cell = "1.19.0"
 bcrypt = "0.15.1"
 validator = { version = "0.18.1", features = ["derive"] }
 mime = "0.3.17"
+diesel = { version = "2.1", features = ["chrono"] }
+diesel-async = { version = "0.5", features = ["postgres", "deadpool"] }
 bytes = "1.7.2"
 axum-extra = { version = "0.9.3", features = ["typed-header"] }
 
