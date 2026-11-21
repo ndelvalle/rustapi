@@ -71,7 +71,7 @@ async fn get_cat_by_id(
     Path(id): Path<String>,
 ) -> Result<Json<CatResponse>, Error> {
     let cat_id = to_uuid(id)?;
-    let cat = Cat::find_by_id(cat_id, user.id)
+    let cat = Cat::find_by_id(user.id, cat_id)
         .await?
         .map(CatResponse::from);
 
@@ -92,7 +92,7 @@ async fn remove_cat_by_id(
     Path(id): Path<String>,
 ) -> Result<CustomResponse<()>, Error> {
     let cat_id = to_uuid(id)?;
-    let deleted = Cat::delete(cat_id, user.id).await?;
+    let deleted = Cat::delete(user.id, cat_id).await?;
 
     if !deleted {
         debug!("Cat not found, returning 404 status code");
@@ -114,7 +114,7 @@ async fn update_cat_by_id(
     payload.validate().map_err(|_| Error::bad_request())?;
 
     let cat_id = to_uuid(id)?;
-    let cat = Cat::update_name(cat_id, user.id, &payload.name)
+    let cat = Cat::update_name(user.id, cat_id, &payload.name)
         .await?
         .map(CatResponse::from);
 

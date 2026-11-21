@@ -2,7 +2,6 @@ use sqlx::FromRow;
 use std::sync::LazyLock;
 use tokio::task;
 use uuid::Uuid;
-use validator::Validate;
 
 use crate::database;
 use crate::errors::Error;
@@ -17,12 +16,10 @@ const HASH_COST: u32 = 4;
 static DUMMY_HASH: LazyLock<String> =
     LazyLock::new(|| bcrypt::hash("", HASH_COST).expect("Failed to hash the dummy password"));
 
-#[derive(Debug, Clone, FromRow, Validate)]
+#[derive(Debug, Clone, FromRow)]
 pub struct User {
     pub id: Uuid,
-    #[validate(length(min = 1))]
     pub name: String,
-    #[validate(email)]
     pub email: String,
     pub password: String,
     pub locked_at: Option<Date>,
@@ -50,8 +47,6 @@ impl User {
     }
 
     pub async fn create(user: Self) -> Result<Self, Error> {
-        user.validate().map_err(|_| Error::bad_request())?;
-
         let user = sqlx::query_as(
             r#"insert into "user" (id, name, email, password, locked_at, created_at, updated_at)
                values ($1, $2, $3, $4, $5, $6, $7)

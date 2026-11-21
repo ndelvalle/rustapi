@@ -54,17 +54,26 @@ fn request_id_is_generated_or_propagated() {
 
 #[test]
 fn request_body_over_the_limit_is_rejected() {
-    use_app(async {
-        let body = format!(r#"{{"name":"{}"}}"#, "a".repeat(2 * 1024 * 1024));
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-        let res = reqwest::Client::new()
-            .post("http://localhost:8088/users")
-            .header("Content-Type", "application/json")
-            .body(body)
-            .send()
+    use_app(async {
+        // Only the headers are sent, announcing a body over the limit. Uploading the body
+        // would race with the server closing the connection after it answers.
+        let request = "POST /users HTTP/1.1\r\n\
+            Host: localhost\r\n\
+            Content-Type: application/json\r\n\
+            Content-Length: 2097152\r\n\
+            \r\n";
+
+        let mut stream = tokio::net::TcpStream::connect("localhost:8088")
             .await
             .unwrap();
+        stream.write_all(request.as_bytes()).await.unwrap();
 
-        assert_eq!(res.status(), StatusCode::PAYLOAD_TOO_LARGE);
+        let mut buffer = [0; 64];
+        let read = stream.read(&mut buffer).await.unwrap();
+        let response = String::from_utf8_lossy(&buffer[..read]);
+
+        assert!(response.starts_with("HTTP/1.1 413"), "{response}");
     });
 }

@@ -151,7 +151,7 @@ fn remove_cat_by_id_route() {
         assert_eq!(actual, expected);
 
         // Cat from the database
-        let cat = Cat::find_by_id(tigrin.id, user.id).await.unwrap();
+        let cat = Cat::find_by_id(user.id, tigrin.id).await.unwrap();
         assert!(cat.is_none(), "Cat should be removed from the database");
     });
 }
@@ -174,6 +174,16 @@ fn get_cats_route_pagination_limits() {
         assert_eq!(res.status(), StatusCode::OK);
         assert_eq!(res.headers().get("X-Pagination-Limit").unwrap(), "100");
         assert_eq!(res.headers().get("X-Pagination-Offset").unwrap(), "5");
+
+        // An offset that is out of range is rejected.
+        let res = client
+            .get("http://localhost:8088/v1/cats?offset=99999999999")
+            .header("Authorization", format!("Bearer {}", token))
+            .send()
+            .await
+            .unwrap();
+
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
 
         // An invalid limit is rejected.
         let res = client
@@ -214,7 +224,7 @@ fn put_cat_route() {
         assert!(body.updated_at > tigrin.updated_at);
 
         // Cat from the database
-        let cat = Cat::find_by_id(tigrin.id, user.id).await.unwrap().unwrap();
+        let cat = Cat::find_by_id(user.id, tigrin.id).await.unwrap().unwrap();
         assert_eq!(cat.name, "Cielito");
     });
 }
@@ -285,7 +295,7 @@ fn cat_routes_hide_cats_from_other_users() {
         assert!(body.is_empty(), "Should not list cats from other users");
 
         // Cat from the database
-        let cat = Cat::find_by_id(tigrin.id, owner.id).await.unwrap().unwrap();
+        let cat = Cat::find_by_id(owner.id, tigrin.id).await.unwrap().unwrap();
         assert_eq!(cat.name, "Tigrin", "Cat should be untouched");
     });
 }

@@ -44,10 +44,10 @@ impl Cat {
         Ok(cat)
     }
 
-    pub async fn find_by_id(id: Uuid, user_id: Uuid) -> Result<Option<Self>, Error> {
-        let cat = sqlx::query_as("select * from cat where id = $1 and user_id = $2")
-            .bind(id)
+    pub async fn find_by_id(user_id: Uuid, id: Uuid) -> Result<Option<Self>, Error> {
+        let cat = sqlx::query_as("select * from cat where user_id = $1 and id = $2")
             .bind(user_id)
+            .bind(id)
             .fetch_optional(database::connection().await)
             .await?;
 
@@ -55,7 +55,7 @@ impl Cat {
     }
 
     // Returns the newest cats first. The ID breaks ties because it increases with time.
-    pub async fn find_by_user(user_id: Uuid, limit: u32, offset: u64) -> Result<Vec<Self>, Error> {
+    pub async fn find_by_user(user_id: Uuid, limit: u32, offset: u32) -> Result<Vec<Self>, Error> {
         let cats = sqlx::query_as(
             "select * from cat where user_id = $1
              order by created_at desc, id desc
@@ -63,7 +63,7 @@ impl Cat {
         )
         .bind(user_id)
         .bind(i64::from(limit))
-        .bind(i64::try_from(offset).map_err(|_| Error::bad_request())?)
+        .bind(i64::from(offset))
         .fetch_all(database::connection().await)
         .await?;
 
@@ -79,14 +79,14 @@ impl Cat {
         Ok(count as u64)
     }
 
-    pub async fn update_name(id: Uuid, user_id: Uuid, name: &str) -> Result<Option<Self>, Error> {
+    pub async fn update_name(user_id: Uuid, id: Uuid, name: &str) -> Result<Option<Self>, Error> {
         let cat = sqlx::query_as(
             "update cat set name = $3, updated_at = $4
-             where id = $1 and user_id = $2
+             where user_id = $1 and id = $2
              returning *",
         )
-        .bind(id)
         .bind(user_id)
+        .bind(id)
         .bind(name)
         .bind(date::now())
         .fetch_optional(database::connection().await)
@@ -96,10 +96,10 @@ impl Cat {
     }
 
     // Returns whether a cat was deleted.
-    pub async fn delete(id: Uuid, user_id: Uuid) -> Result<bool, Error> {
-        let result = sqlx::query("delete from cat where id = $1 and user_id = $2")
-            .bind(id)
+    pub async fn delete(user_id: Uuid, id: Uuid) -> Result<bool, Error> {
+        let result = sqlx::query("delete from cat where user_id = $1 and id = $2")
             .bind(user_id)
+            .bind(id)
             .execute(database::connection().await)
             .await?;
 

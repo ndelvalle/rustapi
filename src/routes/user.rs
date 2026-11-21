@@ -84,7 +84,9 @@ async fn authenticate_user(
 
 #[derive(Debug, Deserialize, Validate)]
 struct CreateBody {
+    #[validate(length(min = 1))]
     name: String,
+    #[validate(email)]
     email: String,
     // The upper bound is the longest password bcrypt hashes without truncating.
     #[validate(length(min = 8, max = 72))]

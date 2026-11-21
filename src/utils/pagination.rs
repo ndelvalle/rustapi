@@ -14,7 +14,7 @@ const MAX_LIMIT: u32 = 100;
 pub struct Pagination {
     /// The number of rows to skip before counting.
     #[serde(default)]
-    pub offset: u64,
+    pub offset: u32,
     /// The maximum number of rows to query.
     #[serde(default = "default_limit")]
     pub limit: u32,
