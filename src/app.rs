@@ -1,20 +1,29 @@
-use axum::http::header;
+use axum::http::{header, StatusCode};
 use axum::Router;
+use std::time::Duration;
 use tower_http::{
-    compression::CompressionLayer, cors::CorsLayer, propagate_header::PropagateHeaderLayer,
-    sensitive_headers::SetSensitiveHeadersLayer, trace,
+    compression::CompressionLayer,
+    cors::CorsLayer,
+    limit::RequestBodyLimitLayer,
+    request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
+    sensitive_headers::SetSensitiveHeadersLayer,
+    timeout::TimeoutLayer,
+    trace,
 };
 
+use crate::database;
 use crate::logger;
-use crate::models;
 use crate::routes;
+
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+const REQUEST_BODY_LIMIT: usize = 1024 * 1024;
 
 pub async fn create_app() -> Router {
     logger::setup();
 
-    models::sync_indexes()
+    database::migrate()
         .await
-        .expect("Failed to sync database indexes");
+        .expect("Failed to run database migrations");
 
     Router::new()
         .merge(routes::status::create_route())
@@ -24,6 +33,13 @@ pub async fn create_app() -> Router {
             // All public v1 routes will be nested here.
             Router::new().merge(routes::cat::create_route()),
         ))
+        // Abort requests that take too long with a 408 status code
+        .layer(TimeoutLayer::with_status_code(
+            StatusCode::REQUEST_TIMEOUT,
+            REQUEST_TIMEOUT,
+        ))
+        // Reject request bodies that are too large with a 413 status code
+        .layer(RequestBodyLimitLayer::new(REQUEST_BODY_LIMIT))
         // High level logging of requests and responses
         .layer(
             trace::TraceLayer::new_for_http()
@@ -39,9 +55,9 @@ pub async fn create_app() -> Router {
         // Compress responses
         .layer(CompressionLayer::new())
         // Propagate `X-Request-Id`s from requests to responses
-        .layer(PropagateHeaderLayer::new(header::HeaderName::from_static(
-            "x-request-id",
-        )))
+        .layer(PropagateRequestIdLayer::x_request_id())
+        // Generate an `X-Request-Id` for requests that come without one
+        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         // CORS configuration. This should probably be more restrictive in
         // production.
         .layer(CorsLayer::permissive())

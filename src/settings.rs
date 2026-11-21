@@ -1,10 +1,10 @@
 use config::{Config, ConfigError, Environment, File};
-use once_cell::sync::Lazy;
 use serde::Deserialize;
+use std::sync::LazyLock;
 use std::{env, fmt};
 
-pub static SETTINGS: Lazy<Settings> =
-    Lazy::new(|| Settings::new().expect("Failed to setup settings"));
+pub static SETTINGS: LazyLock<Settings> =
+    LazyLock::new(|| Settings::new().expect("Failed to setup settings"));
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Server {
@@ -19,7 +19,6 @@ pub struct Logger {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Database {
     pub uri: String,
-    pub name: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -64,6 +63,6 @@ impl Settings {
 
 impl fmt::Display for Server {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "http://localhost:{}", &self.port)
+        write!(f, "http://localhost:{}", self.port)
     }
 }

@@ -27,7 +27,7 @@ pub struct CustomResponseBuilder<T: Serialize> {
 #[derive(Debug)]
 pub struct ResponsePagination {
     pub count: u64,
-    pub offset: u64,
+    pub offset: u32,
     pub limit: u32,
 }
 

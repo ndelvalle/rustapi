@@ -1,16 +1,17 @@
 use axum::http::StatusCode;
 use axum::{routing::post, Json, Router};
-use bson::doc;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
+use uuid::Uuid;
+use validator::Validate;
 
+use crate::common::custom_response::{CustomResponse, CustomResponseBuilder};
+use crate::common::date::Date;
+use crate::common::token;
 use crate::errors::{AuthenticateError, Error};
 use crate::models::user;
-use crate::models::user::{PublicUser, User};
+use crate::models::user::User;
 use crate::settings::SETTINGS;
-use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder};
-use crate::utils::models::ModelExt;
-use crate::utils::token;
 
 pub fn create_route() -> Router {
     Router::new()
@@ -18,11 +19,13 @@ pub fn create_route() -> Router {
         .route("/users/authenticate", post(authenticate_user))
 }
 
-async fn create_user(Json(body): Json<CreateBody>) -> Result<CustomResponse<PublicUser>, Error> {
+async fn create_user(Json(body): Json<CreateBody>) -> Result<CustomResponse<UserResponse>, Error> {
+    body.validate().map_err(|_| Error::bad_request())?;
+
     let password_hash = user::hash_password(body.password).await?;
     let user = User::new(body.name, body.email, password_hash);
     let user = User::create(user).await?;
-    let res = PublicUser::from(user);
+    let res = UserResponse::from(user);
 
     let res = CustomResponseBuilder::new()
         .body(res)
@@ -48,23 +51,22 @@ async fn authenticate_user(
         return Err(Error::bad_request());
     }
 
-    let user = User::find_one(doc! { "email": email }, None).await?;
+    let user = User::find_by_email(email).await?;
 
+    let hash = user.as_ref().map(|user| user.password.clone());
+    let is_match = user::verify_password(password.clone(), hash).await?;
+
+    // An unknown email and a wrong password are answered alike.
     let user = match user {
-        Some(user) => user,
-        None => {
-            debug!("User not found, returning 401");
-            return Err(Error::not_found());
+        Some(user) if is_match => user,
+        _ => {
+            debug!("Wrong email or password, returning 401 status code");
+            return Err(Error::Authenticate(AuthenticateError::WrongCredentials));
         }
     };
 
-    if !user.is_password_match(password) {
-        debug!("User password is incorrect, returning 401 status code");
-        return Err(Error::Authenticate(AuthenticateError::WrongCredentials));
-    }
-
     if user.locked_at.is_some() {
-        debug!("User is locked, returning 401");
+        debug!("User is locked, returning 423 status code");
         return Err(Error::Authenticate(AuthenticateError::Locked));
     }
 
@@ -74,17 +76,20 @@ async fn authenticate_user(
 
     let res = AuthenticateResponse {
         access_token: token,
-        user: PublicUser::from(user),
+        user: UserResponse::from(user),
     };
 
     Ok(Json(res))
 }
 
-// TODO: Validate password length
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 struct CreateBody {
+    #[validate(length(min = 1))]
     name: String,
+    #[validate(email)]
     email: String,
+    // The upper bound is the longest password bcrypt hashes without truncating.
+    #[validate(length(min = 8, max = 72))]
     password: String,
 }
 
@@ -97,5 +102,26 @@ struct AuthorizeBody {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthenticateResponse {
     pub access_token: String,
-    pub user: PublicUser,
+    pub user: UserResponse,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserResponse {
+    pub id: Uuid,
+    pub name: String,
+    pub email: String,
+    pub updated_at: Date,
+    pub created_at: Date,
+}
+
+impl From<User> for UserResponse {
+    fn from(user: User) -> Self {
+        Self {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            updated_at: user.updated_at,
+            created_at: user.created_at,
+        }
+    }
 }
