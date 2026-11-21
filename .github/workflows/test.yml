@@ -4,7 +4,7 @@ on: [push]
 
 env:
   CARGO_TERM_COLOR: always
-  DATABASE__URI: postgres://postgres:postgres@localhost:5432/rustapi_test
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
 
 jobs:
   build:
@@ -15,7 +15,6 @@ jobs:
         image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: rustapi_test
         ports:
           - 5432:5432
         options: >-
@@ -45,4 +44,4 @@ jobs:
         run: cargo clippy -- -D warnings
 
       - name: Run cargo test
-        run: cargo test -- --test-threads=1
+        run: cargo test

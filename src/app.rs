@@ -1,5 +1,7 @@
 use axum::http::{header, StatusCode};
 use axum::Router;
+use sqlx::PgPool;
+use std::sync::Arc;
 use std::time::Duration;
 use tower_http::{
     compression::CompressionLayer,
@@ -11,27 +13,27 @@ use tower_http::{
     trace,
 };
 
-use crate::database;
-use crate::logger;
 use crate::routes;
+use crate::settings::Settings;
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 const REQUEST_BODY_LIMIT: usize = 1024 * 1024;
 
-pub async fn create_app() -> Router {
-    logger::setup();
+// This is the context shared with every request handler.
+#[derive(Clone)]
+pub struct Context {
+    pub db: PgPool,
+    pub settings: Arc<Settings>,
+}
 
-    database::migrate()
-        .await
-        .expect("Failed to run database migrations");
-
+pub fn create_app(ctx: Context) -> Router {
     Router::new()
         .merge(routes::status::create_route())
         .merge(routes::user::create_route())
         .merge(Router::new().nest(
             "/v1",
             // All public v1 routes will be nested here.
-            Router::new().merge(routes::cat::create_route()),
+            Router::new().merge(routes::cat::create_route(ctx.clone())),
         ))
         // Abort requests that take too long with a 408 status code
         .layer(TimeoutLayer::with_status_code(
@@ -61,4 +63,5 @@ pub async fn create_app() -> Router {
         // CORS configuration. This should probably be more restrictive in
         // production.
         .layer(CorsLayer::permissive())
+        .with_state(ctx)
 }

@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum::{
-    extract::Path,
+    extract::{Path, State},
     middleware,
     routing::{delete, get, post, put},
     Json, Router,
@@ -10,31 +10,34 @@ use tracing::debug;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::common::authenticate_request::authenticate_request;
+use crate::app::Context;
+use crate::common::authenticate_request::{authenticate_request, AuthUser};
 use crate::common::custom_response::CustomResponseResult as Response;
 use crate::common::custom_response::{CustomResponse, CustomResponseBuilder, ResponsePagination};
 use crate::common::date::Date;
 use crate::common::pagination::Pagination;
 use crate::common::to_uuid::to_uuid;
-use crate::common::token::TokenUser;
 use crate::errors::Error;
 use crate::models::cat::Cat;
 
-pub fn create_route() -> Router {
+pub fn create_route(ctx: Context) -> Router<Context> {
     Router::new()
         .route("/cats", post(create_cat))
         .route("/cats", get(query_cats))
         .route("/cats/{id}", get(get_cat_by_id))
         .route("/cats/{id}", delete(remove_cat_by_id))
         .route("/cats/{id}", put(update_cat_by_id))
-        .route_layer(middleware::from_fn(authenticate_request))
+        .route_layer(middleware::from_fn_with_state(ctx, authenticate_request))
 }
 
-async fn create_cat(user: TokenUser, Json(payload): Json<CreateCat>) -> Response<CatResponse> {
-    payload.validate().map_err(|_| Error::bad_request())?;
+async fn create_cat(
+    State(ctx): State<Context>,
+    user: AuthUser,
+    Json(payload): Json<CreateCat>,
+) -> Response<CatResponse> {
+    payload.validate()?;
 
-    let cat = Cat::new(user.id, payload.name);
-    let cat = Cat::create(cat).await?;
+    let cat = Cat::create(&ctx.db, user.user_id, &payload.name).await?;
     let res = CatResponse::from(cat);
 
     let res = CustomResponseBuilder::new()
@@ -45,9 +48,14 @@ async fn create_cat(user: TokenUser, Json(payload): Json<CreateCat>) -> Response
     Ok(res)
 }
 
-async fn query_cats(user: TokenUser, pagination: Pagination) -> Response<Vec<CatResponse>> {
-    let count = Cat::count_by_user(user.id).await?;
-    let cats = Cat::find_by_user(user.id, pagination.limit, pagination.offset).await?;
+async fn query_cats(
+    State(ctx): State<Context>,
+    user: AuthUser,
+    pagination: Pagination,
+) -> Response<Vec<CatResponse>> {
+    let count = Cat::count_by_user(&ctx.db, user.user_id).await?;
+    let cats =
+        Cat::find_by_user(&ctx.db, user.user_id, pagination.limit, pagination.offset).await?;
     let cats = cats
         .into_iter()
         .map(Into::into)
@@ -67,11 +75,12 @@ async fn query_cats(user: TokenUser, pagination: Pagination) -> Response<Vec<Cat
 }
 
 async fn get_cat_by_id(
-    user: TokenUser,
+    State(ctx): State<Context>,
+    user: AuthUser,
     Path(id): Path<String>,
 ) -> Result<Json<CatResponse>, Error> {
     let cat_id = to_uuid(id)?;
-    let cat = Cat::find_by_id(user.id, cat_id)
+    let cat = Cat::find_by_id(&ctx.db, user.user_id, cat_id)
         .await?
         .map(CatResponse::from);
 
@@ -88,11 +97,12 @@ async fn get_cat_by_id(
 }
 
 async fn remove_cat_by_id(
-    user: TokenUser,
+    State(ctx): State<Context>,
+    user: AuthUser,
     Path(id): Path<String>,
 ) -> Result<CustomResponse<()>, Error> {
     let cat_id = to_uuid(id)?;
-    let deleted = Cat::delete(user.id, cat_id).await?;
+    let deleted = Cat::delete(&ctx.db, user.user_id, cat_id).await?;
 
     if !deleted {
         debug!("Cat not found, returning 404 status code");
@@ -107,14 +117,15 @@ async fn remove_cat_by_id(
 }
 
 async fn update_cat_by_id(
-    user: TokenUser,
+    State(ctx): State<Context>,
+    user: AuthUser,
     Path(id): Path<String>,
     Json(payload): Json<UpdateCat>,
 ) -> Result<Json<CatResponse>, Error> {
-    payload.validate().map_err(|_| Error::bad_request())?;
+    payload.validate()?;
 
     let cat_id = to_uuid(id)?;
-    let cat = Cat::update_name(user.id, cat_id, &payload.name)
+    let cat = Cat::update_name(&ctx.db, user.user_id, cat_id, &payload.name)
         .await?
         .map(CatResponse::from);
 
@@ -132,13 +143,13 @@ async fn update_cat_by_id(
 
 #[derive(Deserialize, Validate)]
 struct CreateCat {
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, message = "must not be empty"))]
     name: String,
 }
 
 #[derive(Deserialize, Validate)]
 struct UpdateCat {
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, message = "must not be empty"))]
     name: String,
 }
 
@@ -154,7 +165,7 @@ pub struct CatResponse {
 impl From<Cat> for CatResponse {
     fn from(cat: Cat) -> Self {
         Self {
-            id: cat.id,
+            id: cat.cat_id,
             user: cat.user_id,
             name: cat.name,
             updated_at: cat.updated_at,

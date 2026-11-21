@@ -1,0 +1,3 @@
+# This is the database server where the tests create their temporary databases.
+[env]
+DATABASE_URL = { value = "postgres://localhost:5432/postgres", force = false }

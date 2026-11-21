@@ -1,14 +1,6 @@
 {
   "environment": "test",
 
-  "server": {
-    "port": 8088
-  },
-
-  "database": {
-    "uri": "postgres://localhost:5432/rustapi_test"
-  },
-
   "auth": {
     "secret": "secret"
   },

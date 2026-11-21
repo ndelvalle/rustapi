@@ -1,18 +1,17 @@
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::{routing::get, Json, Router};
 use serde::Serialize;
 use tracing::{debug, error};
 
-use crate::database;
+use crate::app::Context;
 
-pub fn create_route() -> Router {
+pub fn create_route() -> Router<Context> {
     Router::new().route("/status", get(get_status))
 }
 
-async fn get_status() -> (StatusCode, Json<Status>) {
-    let result = sqlx::query("select 1")
-        .execute(database::connection().await)
-        .await;
+async fn get_status(State(ctx): State<Context>) -> (StatusCode, Json<Status>) {
+    let result = sqlx::query("select 1").execute(&ctx.db).await;
 
     match result {
         Ok(_) => {

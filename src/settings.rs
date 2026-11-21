@@ -1,10 +1,6 @@
 use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
-use std::sync::LazyLock;
 use std::{env, fmt};
-
-pub static SETTINGS: LazyLock<Settings> =
-    LazyLock::new(|| Settings::new().expect("Failed to setup settings"));
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Server {
@@ -26,9 +22,6 @@ pub struct Auth {
     pub secret: String,
 }
 
-// Remove the #[allow(dead_code)] attribute from the Settings struct when all the fields are being
-// used.
-#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 pub struct Settings {
     pub environment: String,
@@ -42,6 +35,10 @@ impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let run_mode = env::var("RUN_MODE").unwrap_or_else(|_| "development".into());
 
+        Self::from_run_mode(&run_mode)
+    }
+
+    pub fn from_run_mode(run_mode: &str) -> Result<Self, ConfigError> {
         let mut builder = Config::builder()
             .add_source(File::with_name("config/default"))
             .add_source(File::with_name(&format!("config/{run_mode}")).required(false))

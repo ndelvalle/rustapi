@@ -67,7 +67,7 @@ paths:
                 password:
                   type: string
                   minLength: 8
-                  maxLength: 72
+                  maxLength: 128
       responses:
         '201':
           description: Response
@@ -75,14 +75,14 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/User"
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '409':
           description: The email is already in use
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Error"
+                "$ref": "#/components/schemas/FieldsError"
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
 
   "/users/authenticate":
     post:
@@ -118,10 +118,10 @@ paths:
                     type: string
                   user:
                     "$ref": "#/components/schemas/User"
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
         '423':
           $ref: '#/components/responses/Locked'
 
@@ -196,12 +196,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Cat"
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '423':
           $ref: '#/components/responses/Locked'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
 
   "/v1/cats/{cat_id}":
     parameters:
@@ -282,6 +282,8 @@ paths:
           $ref: '#/components/responses/Locked'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
 
 components:
   schemas:
@@ -357,6 +359,25 @@ components:
         message:
           type: string
 
+    FieldsError:
+      type: object
+      required:
+        - code
+        - message
+        - errors
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        errors:
+          type: object
+          description: Maps each rejected field to the reasons why it was rejected
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
   securitySchemes:
     bearerAuth:
       type: http
@@ -388,3 +409,9 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/Error"
+    ValidationFailed:
+      description: The request body has invalid fields
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/FieldsError"

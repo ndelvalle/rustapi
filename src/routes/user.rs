@@ -1,3 +1,4 @@
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::{routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
@@ -5,26 +6,32 @@ use tracing::debug;
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::app::Context;
 use crate::common::custom_response::{CustomResponse, CustomResponseBuilder};
 use crate::common::date::Date;
 use crate::common::token;
-use crate::errors::{AuthenticateError, Error};
+use crate::errors::{AuthenticateError, Error, ResultExt};
 use crate::models::user;
 use crate::models::user::User;
-use crate::settings::SETTINGS;
 
-pub fn create_route() -> Router {
+pub fn create_route() -> Router<Context> {
     Router::new()
         .route("/users", post(create_user))
         .route("/users/authenticate", post(authenticate_user))
 }
 
-async fn create_user(Json(body): Json<CreateBody>) -> Result<CustomResponse<UserResponse>, Error> {
-    body.validate().map_err(|_| Error::bad_request())?;
+async fn create_user(
+    State(ctx): State<Context>,
+    Json(body): Json<CreateBody>,
+) -> Result<CustomResponse<UserResponse>, Error> {
+    body.validate()?;
 
     let password_hash = user::hash_password(body.password).await?;
-    let user = User::new(body.name, body.email, password_hash);
-    let user = User::create(user).await?;
+    let user = User::create(&ctx.db, &body.name, &body.email, &password_hash)
+        .await
+        .on_constraint("user_email_key", |_| {
+            Error::conflict("email", "is already in use")
+        })?;
     let res = UserResponse::from(user);
 
     let res = CustomResponseBuilder::new()
@@ -36,25 +43,15 @@ async fn create_user(Json(body): Json<CreateBody>) -> Result<CustomResponse<User
 }
 
 async fn authenticate_user(
+    State(ctx): State<Context>,
     Json(body): Json<AuthorizeBody>,
 ) -> Result<Json<AuthenticateResponse>, Error> {
-    let email = &body.email;
-    let password = &body.password;
+    body.validate()?;
 
-    if email.is_empty() {
-        debug!("Missing email, returning 400 status code");
-        return Err(Error::bad_request());
-    }
-
-    if password.is_empty() {
-        debug!("Missing password, returning 400 status code");
-        return Err(Error::bad_request());
-    }
-
-    let user = User::find_by_email(email).await?;
+    let user = User::find_by_email(&ctx.db, &body.email).await?;
 
     let hash = user.as_ref().map(|user| user.password.clone());
-    let is_match = user::verify_password(password.clone(), hash).await?;
+    let is_match = user::verify_password(body.password, hash).await?;
 
     // An unknown email and a wrong password are answered alike.
     let user = match user {
@@ -70,8 +67,7 @@ async fn authenticate_user(
         return Err(Error::Authenticate(AuthenticateError::Locked));
     }
 
-    let secret = SETTINGS.auth.secret.as_str();
-    let token = token::create(user.clone(), secret)
+    let token = token::create(user.user_id, &ctx.settings.auth.secret)
         .map_err(|_| Error::Authenticate(AuthenticateError::TokenCreation))?;
 
     let res = AuthenticateResponse {
@@ -84,18 +80,19 @@ async fn authenticate_user(
 
 #[derive(Debug, Deserialize, Validate)]
 struct CreateBody {
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, message = "must not be empty"))]
     name: String,
-    #[validate(email)]
+    #[validate(email(message = "must be a valid email address"))]
     email: String,
-    // The upper bound is the longest password bcrypt hashes without truncating.
-    #[validate(length(min = 8, max = 72))]
+    #[validate(length(min = 8, max = 128, message = "must have between 8 and 128 characters"))]
     password: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 struct AuthorizeBody {
+    #[validate(length(min = 1, message = "must not be empty"))]
     email: String,
+    #[validate(length(min = 1, message = "must not be empty"))]
     password: String,
 }
 
@@ -117,7 +114,7 @@ pub struct UserResponse {
 impl From<User> for UserResponse {
     fn from(user: User) -> Self {
         Self {
-            id: user.id,
+            id: user.user_id,
             name: user.name,
             email: user.email,
             updated_at: user.updated_at,

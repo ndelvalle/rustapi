@@ -1,24 +1,18 @@
-use sqlx::FromRow;
-use std::sync::LazyLock;
+use argon2::password_hash::{self, phc::PasswordHash, PasswordHasher, PasswordVerifier};
+use argon2::Argon2;
+use sqlx::{FromRow, PgPool};
+use std::sync::OnceLock;
 use tokio::task;
 use uuid::Uuid;
 
-use crate::common::date;
 use crate::common::date::Date;
-use crate::database;
 use crate::errors::Error;
 
-#[cfg(not(test))]
-const HASH_COST: u32 = bcrypt::DEFAULT_COST;
-#[cfg(test)]
-const HASH_COST: u32 = 4;
-
-static DUMMY_HASH: LazyLock<String> =
-    LazyLock::new(|| bcrypt::hash("", HASH_COST).expect("Failed to hash the dummy password"));
+static DUMMY_HASH: OnceLock<String> = OnceLock::new();
 
 #[derive(Debug, Clone, FromRow)]
 pub struct User {
-    pub id: Uuid,
+    pub user_id: Uuid,
     pub name: String,
     pub email: String,
     pub password: String,
@@ -28,68 +22,42 @@ pub struct User {
 }
 
 impl User {
-    pub fn new<A, B, C>(name: A, email: B, password_hash: C) -> Self
-    where
-        A: Into<String>,
-        B: Into<String>,
-        C: Into<String>,
-    {
-        let now = date::now();
-        Self {
-            id: Uuid::now_v7(),
-            name: name.into(),
-            email: email.into(),
-            password: password_hash.into(),
-            locked_at: None,
-            created_at: now,
-            updated_at: now,
-        }
-    }
-
-    pub async fn create(user: Self) -> Result<Self, Error> {
+    pub async fn create(
+        db: &PgPool,
+        name: &str,
+        email: &str,
+        password_hash: &str,
+    ) -> Result<Self, Error> {
         let user = sqlx::query_as(
-            r#"insert into "user" (id, name, email, password, locked_at, created_at, updated_at)
-               values ($1, $2, $3, $4, $5, $6, $7)
+            r#"insert into "user" (name, email, password)
+               values ($1, $2, $3)
                returning *"#,
         )
-        .bind(user.id)
-        .bind(user.name)
-        .bind(user.email)
-        .bind(user.password)
-        .bind(user.locked_at)
-        .bind(user.created_at)
-        .bind(user.updated_at)
-        .fetch_one(database::connection().await)
+        .bind(name)
+        .bind(email)
+        .bind(password_hash)
+        .fetch_one(db)
         .await?;
 
         Ok(user)
     }
 
-    pub async fn find_by_id(id: Uuid) -> Result<Option<Self>, Error> {
-        let user = sqlx::query_as(r#"select * from "user" where id = $1"#)
-            .bind(id)
-            .fetch_optional(database::connection().await)
+    pub async fn find_by_id(db: &PgPool, user_id: Uuid) -> Result<Option<Self>, Error> {
+        let user = sqlx::query_as(r#"select * from "user" where user_id = $1"#)
+            .bind(user_id)
+            .fetch_optional(db)
             .await?;
 
         Ok(user)
     }
 
-    pub async fn find_by_email(email: &str) -> Result<Option<Self>, Error> {
+    pub async fn find_by_email(db: &PgPool, email: &str) -> Result<Option<Self>, Error> {
         let user = sqlx::query_as(r#"select * from "user" where email = $1"#)
             .bind(email)
-            .fetch_optional(database::connection().await)
+            .fetch_optional(db)
             .await?;
 
         Ok(user)
-    }
-
-    #[cfg(test)]
-    pub async fn delete_all() -> Result<(), Error> {
-        sqlx::query(r#"delete from "user""#)
-            .execute(database::connection().await)
-            .await?;
-
-        Ok(())
     }
 }
 
@@ -98,8 +66,18 @@ impl User {
 pub async fn verify_password(password: String, hash: Option<String>) -> Result<bool, Error> {
     task::spawn_blocking(move || {
         let is_known = hash.is_some();
-        let hash = hash.as_deref().unwrap_or(DUMMY_HASH.as_str());
-        let is_match = bcrypt::verify(password, hash).unwrap_or(false);
+        let hash = match &hash {
+            Some(hash) => hash.as_str(),
+            None => DUMMY_HASH
+                .get_or_init(|| hash_with_argon2("").expect("Failed to hash the dummy password")),
+        };
+        let is_match = PasswordHash::new(hash)
+            .map(|hash| {
+                Argon2::default()
+                    .verify_password(password.as_bytes(), &hash)
+                    .is_ok()
+            })
+            .unwrap_or(false);
 
         is_known && is_match
     })
@@ -107,12 +85,16 @@ pub async fn verify_password(password: String, hash: Option<String>) -> Result<b
     .map_err(Error::RunSyncTask)
 }
 
-pub async fn hash_password<P>(password: P) -> Result<String, Error>
-where
-    P: AsRef<str> + Send + 'static,
-{
-    task::spawn_blocking(move || bcrypt::hash(password.as_ref(), HASH_COST))
+pub async fn hash_password(password: String) -> Result<String, Error> {
+    task::spawn_blocking(move || hash_with_argon2(&password))
         .await
         .map_err(Error::RunSyncTask)?
         .map_err(Error::HashPassword)
+}
+
+// Hashes with Argon2id and a random salt, using the parameters recommended by OWASP.
+fn hash_with_argon2(password: &str) -> Result<String, password_hash::Error> {
+    let hash = Argon2::default().hash_password(password.as_bytes())?;
+
+    Ok(hash.to_string())
 }
