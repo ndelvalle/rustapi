@@ -1,51 +1,43 @@
 // Original author: Christian Gill (@gillchristian)
 // From: https://gist.github.com/gillchristian/db76e712cc02bff620b86f0cd2bfb691
 
-use async_trait::async_trait;
 use axum::extract::{FromRequestParts, Query};
-use axum::http::{request::Parts, StatusCode};
+use axum::http::request::Parts;
 use serde::Deserialize;
 
+use crate::errors::Error;
+
+const DEFAULT_LIMIT: u32 = 100;
+const MAX_LIMIT: u32 = 100;
+
 #[derive(Debug, Clone, Deserialize)]
-struct Limit {
-    limit: u32,
-}
-
-impl Default for Limit {
-    fn default() -> Self {
-        Self { limit: 100 }
-    }
-}
-
-#[derive(Debug, Clone, Default, Deserialize)]
-struct Offset {
-    offset: u64,
-}
-
-#[derive(Debug, Clone)]
 pub struct Pagination {
-    /// The number of documents to skip before counting.
+    /// The number of rows to skip before counting.
+    #[serde(default)]
     pub offset: u64,
-    /// The maximum number of documents to query.
+    /// The maximum number of rows to query.
+    #[serde(default = "default_limit")]
     pub limit: u32,
 }
 
-#[async_trait]
+fn default_limit() -> u32 {
+    DEFAULT_LIMIT
+}
+
 impl<S> FromRequestParts<S> for Pagination
 where
     S: Send + Sync,
 {
-    type Rejection = (StatusCode, &'static str);
+    type Rejection = Error;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let Query(Limit { limit }) = Query::<Limit>::from_request_parts(parts, state)
+        let Query(pagination) = Query::<Pagination>::from_request_parts(parts, state)
             .await
-            .unwrap_or_default();
+            .map_err(|_| Error::bad_request())?;
 
-        let Query(Offset { offset }) = Query::<Offset>::from_request_parts(parts, state)
-            .await
-            .unwrap_or_default();
-
-        Ok(Self { limit, offset })
+        Ok(Self {
+            limit: pagination.limit.min(MAX_LIMIT),
+            ..pagination
+        })
     }
 }

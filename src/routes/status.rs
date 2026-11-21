@@ -1,22 +1,38 @@
+use axum::http::StatusCode;
 use axum::{routing::get, Json, Router};
-use bson::doc;
-use serde::{Deserialize, Serialize};
-use tracing::debug;
+use serde::Serialize;
+use tracing::{debug, error};
 
-use crate::errors::Error;
+use crate::database;
 
 pub fn create_route() -> Router {
     Router::new().route("/status", get(get_status))
 }
 
-async fn get_status() -> Result<Json<Status>, Error> {
-    debug!("Returning status");
-    Ok(Json(Status {
-        status: "ok".to_owned(),
-    }))
+// Reports whether the API can reach the database, which makes it usable as a readiness probe.
+async fn get_status() -> (StatusCode, Json<Status>) {
+    let result = sqlx::query("select 1")
+        .execute(database::connection().await)
+        .await;
+
+    match result {
+        Ok(_) => {
+            debug!("Returning status");
+            (StatusCode::OK, Json(Status { status: "ok" }))
+        }
+        Err(err) => {
+            error!("Database is unreachable: {err:?}");
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(Status {
+                    status: "unavailable",
+                }),
+            )
+        }
+    }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Debug)]
 struct Status {
-    status: String,
+    status: &'static str,
 }

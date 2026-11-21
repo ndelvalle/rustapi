@@ -6,14 +6,9 @@
   },
   
   "database": {
-    "uri": "mongodb://localhost:27017",
-    "name": "rustapi"
+    "uri": "postgres://localhost:5432/rustapi"
   },
   
-  "auth": {
-    "secret": "secret"
-  },
-
   "logger": {
     "level": "debug"
   }

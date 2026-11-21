@@ -2,7 +2,6 @@ use crate::errors::Error;
 use crate::models::user::hash_password;
 use crate::models::user::User;
 use crate::settings::SETTINGS;
-use crate::utils::models::ModelExt;
 use crate::utils::token;
 
 pub async fn create_user<T: AsRef<str>>(email: T) -> Result<User, Error> {

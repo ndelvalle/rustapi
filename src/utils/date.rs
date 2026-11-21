@@ -1,7 +1,7 @@
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 
-pub type Date = bson::DateTime;
+pub type Date = DateTime<Utc>;
 
 pub fn now() -> Date {
-    Utc::now().into()
+    Utc::now()
 }

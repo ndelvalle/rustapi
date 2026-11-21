@@ -1,61 +1,117 @@
-use bson::serde_helpers::bson_datetime_as_rfc3339_string;
-use bson::serde_helpers::serialize_object_id_as_hex_string;
-use serde::{Deserialize, Serialize};
-use validator::Validate;
-use wither::bson::{doc, oid::ObjectId};
-use wither::Model as WitherModel;
+use sqlx::FromRow;
+use uuid::Uuid;
 
+use crate::database;
+use crate::errors::Error;
 use crate::utils::date;
 use crate::utils::date::Date;
-use crate::utils::models::ModelExt;
 
-impl ModelExt for Cat {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, WitherModel, Validate)]
-#[model(index(keys = r#"doc!{ "user": 1, "created_at": 1 }"#))]
+#[derive(Debug, Clone, FromRow)]
 pub struct Cat {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
-    pub user: ObjectId,
+    pub id: Uuid,
+    pub user_id: Uuid,
     pub name: String,
-    pub updated_at: Date,
     pub created_at: Date,
+    pub updated_at: Date,
 }
 
 impl Cat {
-    pub fn new(user: ObjectId, name: String) -> Self {
+    pub fn new(user_id: Uuid, name: String) -> Self {
         let now = date::now();
         Self {
-            id: None,
-            user,
+            id: Uuid::now_v7(),
+            user_id,
             name,
-            updated_at: now,
             created_at: now,
+            updated_at: now,
         }
     }
-}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PublicCat {
-    #[serde(alias = "_id", serialize_with = "serialize_object_id_as_hex_string")]
-    pub id: ObjectId,
-    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
-    pub user: ObjectId,
-    pub name: String,
-    #[serde(with = "bson_datetime_as_rfc3339_string")]
-    pub updated_at: Date,
-    #[serde(with = "bson_datetime_as_rfc3339_string")]
-    pub created_at: Date,
-}
+    pub async fn create(cat: Self) -> Result<Self, Error> {
+        let cat = sqlx::query_as(
+            "insert into cat (id, user_id, name, created_at, updated_at)
+             values ($1, $2, $3, $4, $5)
+             returning *",
+        )
+        .bind(cat.id)
+        .bind(cat.user_id)
+        .bind(cat.name)
+        .bind(cat.created_at)
+        .bind(cat.updated_at)
+        .fetch_one(database::connection().await)
+        .await?;
 
-impl From<Cat> for PublicCat {
-    fn from(cat: Cat) -> Self {
-        Self {
-            id: cat.id.unwrap(),
-            user: cat.user,
-            name: cat.name.clone(),
-            updated_at: cat.updated_at,
-            created_at: cat.created_at,
-        }
+        Ok(cat)
+    }
+
+    pub async fn find_by_id(id: Uuid, user_id: Uuid) -> Result<Option<Self>, Error> {
+        let cat = sqlx::query_as("select * from cat where id = $1 and user_id = $2")
+            .bind(id)
+            .bind(user_id)
+            .fetch_optional(database::connection().await)
+            .await?;
+
+        Ok(cat)
+    }
+
+    // Returns the newest cats first. The ID breaks ties because it increases with time.
+    pub async fn find_by_user(user_id: Uuid, limit: u32, offset: u64) -> Result<Vec<Self>, Error> {
+        let cats = sqlx::query_as(
+            "select * from cat where user_id = $1
+             order by created_at desc, id desc
+             limit $2 offset $3",
+        )
+        .bind(user_id)
+        .bind(i64::from(limit))
+        .bind(i64::try_from(offset).map_err(|_| Error::bad_request())?)
+        .fetch_all(database::connection().await)
+        .await?;
+
+        Ok(cats)
+    }
+
+    pub async fn count_by_user(user_id: Uuid) -> Result<u64, Error> {
+        let count: i64 = sqlx::query_scalar("select count(*) from cat where user_id = $1")
+            .bind(user_id)
+            .fetch_one(database::connection().await)
+            .await?;
+
+        Ok(count as u64)
+    }
+
+    pub async fn update_name(id: Uuid, user_id: Uuid, name: &str) -> Result<Option<Self>, Error> {
+        let cat = sqlx::query_as(
+            "update cat set name = $3, updated_at = $4
+             where id = $1 and user_id = $2
+             returning *",
+        )
+        .bind(id)
+        .bind(user_id)
+        .bind(name)
+        .bind(date::now())
+        .fetch_optional(database::connection().await)
+        .await?;
+
+        Ok(cat)
+    }
+
+    // Returns whether a cat was deleted.
+    pub async fn delete(id: Uuid, user_id: Uuid) -> Result<bool, Error> {
+        let result = sqlx::query("delete from cat where id = $1 and user_id = $2")
+            .bind(id)
+            .bind(user_id)
+            .execute(database::connection().await)
+            .await?;
+
+        Ok(result.rows_affected() > 0)
+    }
+
+    #[cfg(test)]
+    pub async fn delete_all() -> Result<(), Error> {
+        sqlx::query("delete from cat")
+            .execute(database::connection().await)
+            .await?;
+
+        Ok(())
     }
 }
