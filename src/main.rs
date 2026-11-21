@@ -4,13 +4,13 @@ use tokio::signal;
 use tracing::info;
 
 mod app;
+mod common;
 mod database;
 mod errors;
 mod logger;
 mod models;
 mod routes;
 mod settings;
-mod utils;
 
 // There are a couple approaches to take when implementing E2E tests. This
 // approach adds tests on /src/tests, this way tests can reference modules

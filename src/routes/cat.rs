@@ -10,15 +10,15 @@ use tracing::debug;
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::common::authenticate_request::authenticate_request;
+use crate::common::custom_response::CustomResponseResult as Response;
+use crate::common::custom_response::{CustomResponse, CustomResponseBuilder, ResponsePagination};
+use crate::common::date::Date;
+use crate::common::pagination::Pagination;
+use crate::common::to_uuid::to_uuid;
+use crate::common::token::TokenUser;
 use crate::errors::Error;
 use crate::models::cat::Cat;
-use crate::utils::authenticate_request::authenticate_request;
-use crate::utils::custom_response::CustomResponseResult as Response;
-use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder, ResponsePagination};
-use crate::utils::date::Date;
-use crate::utils::pagination::Pagination;
-use crate::utils::to_uuid::to_uuid;
-use crate::utils::token::TokenUser;
 
 pub fn create_route() -> Router {
     Router::new()

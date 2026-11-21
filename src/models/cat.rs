@@ -1,10 +1,10 @@
 use sqlx::FromRow;
 use uuid::Uuid;
 
+use crate::common::date;
+use crate::common::date::Date;
 use crate::database;
 use crate::errors::Error;
-use crate::utils::date;
-use crate::utils::date::Date;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Cat {

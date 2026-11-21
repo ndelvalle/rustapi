@@ -5,13 +5,13 @@ use tracing::debug;
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::common::custom_response::{CustomResponse, CustomResponseBuilder};
+use crate::common::date::Date;
+use crate::common::token;
 use crate::errors::{AuthenticateError, Error};
 use crate::models::user;
 use crate::models::user::User;
 use crate::settings::SETTINGS;
-use crate::utils::custom_response::{CustomResponse, CustomResponseBuilder};
-use crate::utils::date::Date;
-use crate::utils::token;
 
 pub fn create_route() -> Router {
     Router::new()

@@ -3,10 +3,10 @@ use std::sync::LazyLock;
 use tokio::task;
 use uuid::Uuid;
 
+use crate::common::date;
+use crate::common::date::Date;
 use crate::database;
 use crate::errors::Error;
-use crate::utils::date;
-use crate::utils::date::Date;
 
 #[cfg(not(test))]
 const HASH_COST: u32 = bcrypt::DEFAULT_COST;

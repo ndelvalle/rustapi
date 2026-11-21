@@ -60,7 +60,7 @@ To use this template as your project starting point, click "Use this template" a
     │   └── user.rs
     ├── settings.rs
     ├── tests            # E2E Tests
-    └── utils            # Helpers not related to the business model
+    └── common           # Helpers not related to the business model
         ├── authenticate_request.rs
         ├── custom_response.rs
         ├── date.rs

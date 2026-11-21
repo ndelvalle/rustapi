@@ -5,12 +5,12 @@ use axum::response::Response;
 use axum_extra::headers::authorization::Bearer;
 use axum_extra::headers::{Authorization, HeaderMapExt};
 
+use crate::common::token;
+use crate::common::token::TokenUser;
 use crate::errors::AuthenticateError;
 use crate::errors::Error;
 use crate::models::user::User;
 use crate::settings::SETTINGS;
-use crate::utils::token;
-use crate::utils::token::TokenUser;
 
 // This middleware authenticates the request. Besides validating the token, it loads the
 // user so that removed and locked users are rejected even when their token is still valid.
