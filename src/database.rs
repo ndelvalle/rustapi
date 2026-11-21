@@ -17,7 +17,6 @@ pub async fn connection() -> &'static PgPool {
         .await
 }
 
-// Applies the pending migrations from the migrations folder.
 pub async fn migrate() -> Result<(), MigrateError> {
     sqlx::migrate!().run(connection().await).await
 }

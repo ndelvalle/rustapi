@@ -37,8 +37,6 @@ pub async fn authenticate_request(mut request: Request, next: Next) -> Result<Re
     Ok(next.run(request).await)
 }
 
-// Returns the user stored by the authentication middleware. Routes that are not behind
-// the middleware are rejected.
 impl<S> FromRequestParts<S> for TokenUser
 where
     S: Send + Sync,

@@ -42,7 +42,6 @@ async fn main() -> Result<(), std::io::Error> {
     Ok(())
 }
 
-// Resolves on Ctrl+C or SIGTERM, letting in-flight requests finish before the server stops.
 async fn shutdown_signal() {
     let ctrl_c = async {
         signal::ctrl_c()

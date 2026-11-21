@@ -54,7 +54,6 @@ impl Cat {
         Ok(cat)
     }
 
-    // Returns the newest cats first. The ID breaks ties because it increases with time.
     pub async fn find_by_user(user_id: Uuid, limit: u32, offset: u32) -> Result<Vec<Self>, Error> {
         let cats = sqlx::query_as(
             "select * from cat where user_id = $1
@@ -95,7 +94,6 @@ impl Cat {
         Ok(cat)
     }
 
-    // Returns whether a cat was deleted.
     pub async fn delete(user_id: Uuid, id: Uuid) -> Result<bool, Error> {
         let result = sqlx::query("delete from cat where user_id = $1 and id = $2")
             .bind(user_id)

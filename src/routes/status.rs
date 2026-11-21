@@ -9,7 +9,6 @@ pub fn create_route() -> Router {
     Router::new().route("/status", get(get_status))
 }
 
-// Reports whether the API can reach the database, which makes it usable as a readiness probe.
 async fn get_status() -> (StatusCode, Json<Status>) {
     let result = sqlx::query("select 1")
         .execute(database::connection().await)
