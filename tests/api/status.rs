@@ -11,9 +11,9 @@ use pretty_assertions::assert_eq;
 #[sqlx::test]
 async fn get_status_route(db: PgPool) {
     let app = TestApp::spawn(db).await;
-    let res = reqwest::get(app.url("/status")).await.unwrap();
-    let status_code = res.status();
-    let body = res.json::<Json>().await.unwrap();
+    let response = reqwest::get(app.url("/status")).await.unwrap();
+    let status_code = response.status();
+    let body = response.json::<Json>().await.unwrap();
 
     // Status code:
     let actual = status_code;
@@ -32,18 +32,26 @@ async fn request_id_is_generated_or_propagated(db: PgPool) {
     let client = reqwest::Client::new();
 
     // A request without an ID gets a generated one.
-    let res = client.get(app.url("/status")).send().await.unwrap();
-    let generated = res.headers().get("X-Request-Id").unwrap().to_str().unwrap();
+    let response = client.get(app.url("/status")).send().await.unwrap();
+    let generated = response
+        .headers()
+        .get("X-Request-Id")
+        .unwrap()
+        .to_str()
+        .unwrap();
     assert!(uuid::Uuid::parse_str(generated).is_ok());
 
     // A request with an ID gets the same one back.
-    let res = client
+    let response = client
         .get(app.url("/status"))
         .header("X-Request-Id", "my-request-id")
         .send()
         .await
         .unwrap();
-    assert_eq!(res.headers().get("X-Request-Id").unwrap(), "my-request-id");
+    assert_eq!(
+        response.headers().get("X-Request-Id").unwrap(),
+        "my-request-id"
+    );
 }
 
 #[sqlx::test]

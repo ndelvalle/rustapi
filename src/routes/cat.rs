@@ -11,7 +11,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::app::Context;
-use crate::common::authenticate_request::{authenticate_request, AuthUser};
+use crate::common::authenticate_request::{authenticate_request, AuthenticatedUser};
 use crate::common::custom_response::CustomResponseResult as Response;
 use crate::common::custom_response::{CustomResponse, CustomResponseBuilder, ResponsePagination};
 use crate::common::date::Date;
@@ -32,25 +32,25 @@ pub fn create_route(ctx: Context) -> Router<Context> {
 
 async fn create_cat(
     State(ctx): State<Context>,
-    user: AuthUser,
+    user: AuthenticatedUser,
     Json(payload): Json<CreateCat>,
 ) -> Response<CatResponse> {
     payload.validate()?;
 
     let cat = Cat::create(&ctx.db, user.user_id, &payload.name).await?;
-    let res = CatResponse::from(cat);
+    let response = CatResponse::from(cat);
 
-    let res = CustomResponseBuilder::new()
-        .body(res)
+    let response = CustomResponseBuilder::new()
+        .body(response)
         .status_code(StatusCode::CREATED)
         .build();
 
-    Ok(res)
+    Ok(response)
 }
 
 async fn query_cats(
     State(ctx): State<Context>,
-    user: AuthUser,
+    user: AuthenticatedUser,
     pagination: Pagination,
 ) -> Response<Vec<CatResponse>> {
     let count = Cat::count_by_user(&ctx.db, user.user_id).await?;
@@ -61,7 +61,7 @@ async fn query_cats(
         .map(Into::into)
         .collect::<Vec<CatResponse>>();
 
-    let res = CustomResponseBuilder::new()
+    let response = CustomResponseBuilder::new()
         .body(cats)
         .pagination(ResponsePagination {
             count,
@@ -71,12 +71,12 @@ async fn query_cats(
         .build();
 
     debug!("Returning cats");
-    Ok(res)
+    Ok(response)
 }
 
 async fn get_cat_by_id(
     State(ctx): State<Context>,
-    user: AuthUser,
+    user: AuthenticatedUser,
     Path(id): Path<String>,
 ) -> Result<Json<CatResponse>, Error> {
     let cat_id = to_uuid(id)?;
@@ -98,7 +98,7 @@ async fn get_cat_by_id(
 
 async fn remove_cat_by_id(
     State(ctx): State<Context>,
-    user: AuthUser,
+    user: AuthenticatedUser,
     Path(id): Path<String>,
 ) -> Result<CustomResponse<()>, Error> {
     let cat_id = to_uuid(id)?;
@@ -109,16 +109,16 @@ async fn remove_cat_by_id(
         return Err(Error::not_found());
     }
 
-    let res = CustomResponseBuilder::new()
+    let response = CustomResponseBuilder::new()
         .status_code(StatusCode::NO_CONTENT)
         .build();
 
-    Ok(res)
+    Ok(response)
 }
 
 async fn update_cat_by_id(
     State(ctx): State<Context>,
-    user: AuthUser,
+    user: AuthenticatedUser,
     Path(id): Path<String>,
     Json(payload): Json<UpdateCat>,
 ) -> Result<Json<CatResponse>, Error> {

@@ -87,8 +87,8 @@ where
         };
 
         let mut bytes = BytesMut::new().writer();
-        if let Err(err) = serde_json::to_writer(&mut bytes, &body) {
-            error!("Error serializing response body as JSON: {:?}", err);
+        if let Err(error) = serde_json::to_writer(&mut bytes, &body) {
+            error!("Error serializing response body as JSON: {:?}", error);
             return (StatusCode::INTERNAL_SERVER_ERROR).into_response();
         }
 
@@ -108,16 +108,22 @@ where
 impl IntoResponseParts for ResponsePagination {
     type Error = (StatusCode, String);
 
-    fn into_response_parts(self, mut res: ResponseParts) -> Result<ResponseParts, Self::Error> {
-        res.headers_mut()
+    fn into_response_parts(
+        self,
+        mut response: ResponseParts,
+    ) -> Result<ResponseParts, Self::Error> {
+        response
+            .headers_mut()
             .insert("x-pagination-count", self.count.into());
 
-        res.headers_mut()
+        response
+            .headers_mut()
             .insert("x-pagination-offset", self.offset.into());
 
-        res.headers_mut()
+        response
+            .headers_mut()
             .insert("x-pagination-limit", self.limit.into());
 
-        Ok(res)
+        Ok(response)
     }
 }

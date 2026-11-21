@@ -32,14 +32,14 @@ async fn create_user(
         .on_constraint("user_email_key", |_| {
             Error::conflict("email", "is already in use")
         })?;
-    let res = UserResponse::from(user);
+    let response = UserResponse::from(user);
 
-    let res = CustomResponseBuilder::new()
-        .body(res)
+    let response = CustomResponseBuilder::new()
+        .body(response)
         .status_code(StatusCode::CREATED)
         .build();
 
-    Ok(res)
+    Ok(response)
 }
 
 async fn authenticate_user(
@@ -70,12 +70,12 @@ async fn authenticate_user(
     let token = token::create(user.user_id, &ctx.settings.auth.secret)
         .map_err(|_| Error::Authenticate(AuthenticateError::TokenCreation))?;
 
-    let res = AuthenticateResponse {
+    let response = AuthenticateResponse {
         access_token: token,
         user: UserResponse::from(user),
     };
 
-    Ok(Json(res))
+    Ok(Json(response))
 }
 
 #[derive(Debug, Deserialize, Validate)]

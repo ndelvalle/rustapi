@@ -18,8 +18,8 @@ async fn get_status(State(ctx): State<Context>) -> (StatusCode, Json<Status>) {
             debug!("Returning status");
             (StatusCode::OK, Json(Status { status: "ok" }))
         }
-        Err(err) => {
-            error!("Database is unreachable: {err:?}");
+        Err(error) => {
+            error!("Database is unreachable: {error:?}");
             (
                 StatusCode::SERVICE_UNAVAILABLE,
                 Json(Status {

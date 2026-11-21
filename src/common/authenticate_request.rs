@@ -14,13 +14,13 @@ use crate::models::user::User;
 
 // This is the user that made the request, as loaded by the authentication middleware.
 #[derive(Debug, Clone)]
-pub struct AuthUser {
+pub struct AuthenticatedUser {
     pub user_id: Uuid,
     pub name: String,
     pub email: String,
 }
 
-impl From<User> for AuthUser {
+impl From<User> for AuthenticatedUser {
     fn from(user: User) -> Self {
         Self {
             user_id: user.user_id,
@@ -53,12 +53,14 @@ pub async fn authenticate_request(
         return Err(AuthenticateError::Locked.into());
     }
 
-    request.extensions_mut().insert(AuthUser::from(user));
+    request
+        .extensions_mut()
+        .insert(AuthenticatedUser::from(user));
 
     Ok(next.run(request).await)
 }
 
-impl<S> FromRequestParts<S> for AuthUser
+impl<S> FromRequestParts<S> for AuthenticatedUser
 where
     S: Send + Sync,
 {
@@ -67,7 +69,7 @@ where
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         parts
             .extensions
-            .get::<AuthUser>()
+            .get::<AuthenticatedUser>()
             .cloned()
             .ok_or_else(|| AuthenticateError::InvalidToken.into())
     }
