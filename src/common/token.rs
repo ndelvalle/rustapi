@@ -3,50 +3,33 @@ use serde::{Deserialize, Serialize};
 use std::sync::LazyLock;
 use uuid::Uuid;
 
-use crate::models::user::User;
-
 type TokenResult = Result<TokenData<Claims>, Error>;
 
 static VALIDATION: LazyLock<Validation> = LazyLock::new(Validation::default);
 static HEADER: LazyLock<Header> = LazyLock::new(Header::default);
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TokenUser {
-    pub id: Uuid,
-    pub name: String,
-    pub email: String,
-}
-
-impl From<User> for TokenUser {
-    fn from(user: User) -> Self {
-        Self {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
+    pub sub: Uuid,  // Subject, the ID of the user the token belongs to
     pub exp: usize, // Expiration time (as UTC timestamp). validate_exp defaults to true in validation
     pub iat: usize, // Issued at (as UTC timestamp)
-    pub user: TokenUser,
 }
 
 impl Claims {
-    pub fn new(user: User) -> Self {
+    pub fn new(user_id: Uuid) -> Self {
+        let now = chrono::Utc::now();
+
         Self {
-            exp: (chrono::Local::now() + chrono::Duration::days(30)).timestamp() as usize,
-            iat: chrono::Local::now().timestamp() as usize,
-            user: TokenUser::from(user),
+            sub: user_id,
+            exp: (now + chrono::Duration::days(30)).timestamp() as usize,
+            iat: now.timestamp() as usize,
         }
     }
 }
 
-pub fn create(user: User, secret: &str) -> Result<String, Error> {
+pub fn create(user_id: Uuid, secret: &str) -> Result<String, Error> {
     let encoding_key = EncodingKey::from_secret(secret.as_ref())?;
-    let claims = Claims::new(user);
+    let claims = Claims::new(user_id);
 
     jsonwebtoken::encode(&HEADER, &claims, &encoding_key)
 }

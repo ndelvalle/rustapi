@@ -8,7 +8,7 @@ database through [sqlx](https://github.com/launchbadge/sqlx) and the [Axum](http
 ### Requirements
 
 - [Rust](https://www.rust-lang.org/tools/install)
-- [PostgreSQL](https://www.postgresql.org/download/)
+- [PostgreSQL](https://www.postgresql.org/download/) 18 or newer, for its built-in `uuidv7()`
 
 ### How to use this template
 
@@ -18,9 +18,9 @@ To use this template as your project starting point, click "Use this template" a
 
 * Authentication. Based on [jsonwebtoken](https://github.com/Keats/jsonwebtoken)
 * Layered configuration. Based on [config-rs](https://github.com/rust-cli/config-rs)
-* SQL migrations and [UUIDv7](https://www.rfc-editor.org/rfc/rfc9562#name-uuid-version-7) IDs
+* SQL migrations. The database generates [UUIDv7](https://www.rfc-editor.org/rfc/rfc9562#name-uuid-version-7) IDs and maintains the timestamps
 * Logs. Based on [tracing](https://github.com/tokio-rs/tracing)
-* Error handling
+* Error handling, with the invalid fields listed in validation errors
 * Graceful shutdown, request timeout, body size limit and request IDs
 * Status route that checks the database, usable as a readiness probe
 * Pagination
@@ -43,31 +43,33 @@ To use this template as your project starting point, click "Use this template" a
 │   └── test.json        # Test configuration (Overwrites the default)
 ├── migrations           # SQL migrations, applied on startup
 ├── openapi.yaml         # OpenAPI specification
-└── src
-    ├── app.rs           # Router and middleware
-    ├── database.rs      # Connection pool and migrations
-    ├── errors.rs
-    ├── logger.rs
-    ├── main.rs
-    ├── models           # Structs and the SQL queries that load and store them
-    │   ├── cat.rs
-    │   ├── mod.rs
-    │   └── user.rs
-    ├── routes
-    │   ├── cat.rs
-    │   ├── mod.rs
-    │   ├── status.rs
-    │   └── user.rs
-    ├── settings.rs
-    ├── tests            # E2E Tests
-    └── common           # Helpers not related to the business model
-        ├── authenticate_request.rs
-        ├── custom_response.rs
-        ├── date.rs
-        ├── mod.rs
-        ├── pagination.rs
-        ├── to_uuid.rs
-        └── token.rs
+├── src
+│   ├── app.rs           # Router, middleware and the context shared with the handlers
+│   ├── common           # Helpers not related to the business model
+│   │   ├── authenticate_request.rs
+│   │   ├── custom_response.rs
+│   │   ├── date.rs
+│   │   ├── mod.rs
+│   │   ├── pagination.rs
+│   │   ├── to_uuid.rs
+│   │   └── token.rs
+│   ├── database.rs      # Connection pool and migrations
+│   ├── errors.rs
+│   ├── lib.rs           # The API as a library, shared by the binary and the tests
+│   ├── logger.rs
+│   ├── main.rs          # Loads the settings and starts the server
+│   ├── models           # Structs and the SQL queries that load and store them
+│   │   ├── cat.rs
+│   │   ├── mod.rs
+│   │   └── user.rs
+│   ├── routes           # Handlers with their request and response bodies
+│   │   ├── cat.rs
+│   │   ├── mod.rs
+│   │   ├── status.rs
+│   │   └── user.rs
+│   └── settings.rs
+└── tests
+    └── api              # E2E Tests
 ```
 
 ### Run
@@ -89,12 +91,17 @@ refuses to start until `AUTH__SECRET` is set.
 
 ### Test
 
-To run tests make sure PostgreSQL is up and running and the test database exists.
+To run tests make sure PostgreSQL is up and running.
 
 ```
-createdb rustapi_test
-make test
+cargo test
 ```
+
+Every test starts its own instance of the API on a random port, backed by a
+temporary database that is created and migrated for that test, so tests run in
+parallel. The databases are created on the server that `DATABASE_URL` points
+to, which defaults to `postgres://localhost:5432/postgres` (see
+`.cargo/config.toml`).
 
 ## Contributing
 

@@ -1,33 +1,33 @@
 use std::net::{Ipv4Addr, SocketAddr};
+use std::sync::Arc;
 use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::info;
 
-mod app;
-mod common;
-mod database;
-mod errors;
-mod logger;
-mod models;
-mod routes;
-mod settings;
-
-// There are a couple approaches to take when implementing E2E tests. This
-// approach adds tests on /src/tests, this way tests can reference modules
-// inside the src folder. Another approach would be to have the tests in a
-// /tests folder on the root of the project, to do this and be able to import
-// modules from the src folder, modules need to be exported as a lib.
-#[cfg(test)]
-mod tests;
-
-use settings::SETTINGS;
+use rustapi::app::{create_app, Context};
+use rustapi::database;
+use rustapi::logger;
+use rustapi::settings::Settings;
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let port = SETTINGS.server.port;
-    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, port));
+    let settings = Settings::new().expect("Failed to load settings");
 
-    let app = app::create_app().await;
+    logger::setup(&settings.logger.level);
+
+    let db = database::connect(&settings.database.uri)
+        .await
+        .expect("Failed to connect to the database");
+
+    database::migrate(&db)
+        .await
+        .expect("Failed to run database migrations");
+
+    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, settings.server.port));
+    let app = create_app(Context {
+        db: db.clone(),
+        settings: Arc::new(settings),
+    });
 
     let listener = TcpListener::bind(address).await?;
     info!("Server listening on {}", &address);
@@ -37,7 +37,7 @@ async fn main() -> Result<(), std::io::Error> {
         .await?;
 
     info!("Server stopped, closing database connections");
-    database::connection().await.close().await;
+    db.close().await;
 
     Ok(())
 }
