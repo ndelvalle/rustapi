@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use rustapi::app::{create_app, Context};
+use rustapi::app::{Context, create_app};
 use rustapi::common::token;
-use rustapi::models::user::{hash_password, User};
+use rustapi::models::user::{User, hash_password};
 use rustapi::settings::Settings;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -16,7 +16,15 @@ pub struct TestApp {
 
 impl TestApp {
     pub async fn spawn(db: PgPool) -> Self {
-        let settings = Arc::new(Settings::from_run_mode("test").expect("Failed to load settings"));
+        Self::spawn_with_settings(db, Self::settings()).await
+    }
+
+    pub fn settings() -> Settings {
+        Settings::from_run_mode("test").expect("Failed to load settings")
+    }
+
+    pub async fn spawn_with_settings(db: PgPool, settings: Settings) -> Self {
+        let settings = Arc::new(settings);
         let app = create_app(Context {
             db: db.clone(),
             settings: settings.clone(),

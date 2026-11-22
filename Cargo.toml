@@ -2,7 +2,8 @@
 name = "rustapi"
 version = "0.1.0"
 authors = ["ndelvalle <nicolas.delvalle@gmail.com>"]
-edition = "2021"
+edition = "2024"
+license = "MIT"
 
 [dependencies]
 config = "0.15.27"

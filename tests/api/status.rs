@@ -1,7 +1,7 @@
 use assert_json_diff::assert_json_eq;
 use reqwest::StatusCode;
-use serde_json::json;
 use serde_json::Value as Json;
+use serde_json::json;
 use sqlx::PgPool;
 
 use crate::helpers::TestApp;

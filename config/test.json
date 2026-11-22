@@ -5,6 +5,10 @@
     "secret": "secret"
   },
 
+  "cors": {
+    "allowed_origins": ["https://app.example.com", "https://admin.example.com"]
+  },
+
   "logger": {
     "level": "error"
   }

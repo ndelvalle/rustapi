@@ -23,12 +23,19 @@ pub struct Auth {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct Cors {
+    // These are the origins that browsers may call the API from. A `*` allows any origin.
+    pub allowed_origins: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct Settings {
     pub environment: String,
     pub server: Server,
     pub logger: Logger,
     pub database: Database,
     pub auth: Auth,
+    pub cors: Cors,
 }
 
 impl Settings {
@@ -43,7 +50,14 @@ impl Settings {
             .add_source(File::with_name("config/default"))
             .add_source(File::with_name(&format!("config/{run_mode}")).required(false))
             .add_source(File::with_name("config/local").required(false))
-            .add_source(Environment::default().separator("__"));
+            .add_source(
+                Environment::default()
+                    .separator("__")
+                    // Reads CORS__ALLOWED_ORIGINS as a comma separated list.
+                    .try_parsing(true)
+                    .list_separator(",")
+                    .with_list_parse_key("cors.allowed_origins"),
+            );
 
         // Some cloud services like Heroku exposes a randomly assigned port in
         // the PORT env var and there is no way to change the env var name.

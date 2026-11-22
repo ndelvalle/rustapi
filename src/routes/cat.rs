@@ -1,9 +1,9 @@
 use axum::http::StatusCode;
 use axum::{
+    Json, Router,
     extract::{Path, State},
     middleware,
     routing::{delete, get, post, put},
-    Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use tracing::debug;
@@ -11,7 +11,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::app::Context;
-use crate::common::authenticate_request::{authenticate_request, AuthenticatedUser};
+use crate::common::authenticate_request::{AuthenticatedUser, authenticate_request};
 use crate::common::custom_response::CustomResponseResult as Response;
 use crate::common::custom_response::{CustomResponse, CustomResponseBuilder, ResponsePagination};
 use crate::common::date::Date;
