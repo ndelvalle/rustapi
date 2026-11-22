@@ -22,10 +22,9 @@ To use this template as your project starting point, click "Use this template" a
 * Logs. Based on [tracing](https://github.com/tokio-rs/tracing)
 * Error handling, with the invalid fields listed in validation errors
 * Graceful shutdown, request timeout, body size limit and request IDs
-* Status route that checks the database, usable as a readiness probe
+* Status route that checks the database
 * Pagination
 * E2E Tests
-* OpenAPI Specification
 * CI based on Github actions
 * Dependabot configuration
 
@@ -42,7 +41,6 @@ To use this template as your project starting point, click "Use this template" a
 │   ├── production.json  # Production configuration (Overwrites the default)
 │   └── test.json        # Test configuration (Overwrites the default)
 ├── migrations           # SQL migrations, applied on startup
-├── openapi.yaml         # OpenAPI specification
 ├── src
 │   ├── app.rs           # Router, middleware and the context shared with the handlers
 │   ├── common           # Helpers not related to the business model
@@ -88,6 +86,13 @@ separates the levels. For example, `DATABASE__URI` overrides `database.uri`.
 
 Only development and test ship with a JWT secret. In any other mode the server
 refuses to start until `AUTH__SECRET` is set.
+
+### API documentation
+
+This template is deliberately minimal, so it does not generate or serve an
+OpenAPI specification. Most private APIs never need to publish one. If yours
+does, [utoipa](https://github.com/juhaku/utoipa) generates it from the handlers
+and integrates well with axum.
 
 ### Test
 
