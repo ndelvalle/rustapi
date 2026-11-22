@@ -33,6 +33,7 @@ To use this template as your project starting point, click "Use this template" a
 ```bash
 ├── Cargo.lock
 ├── Cargo.toml
+├── LICENSE
 ├── Makefile
 ├── README.md
 ├── config
@@ -87,6 +88,10 @@ separates the levels. For example, `DATABASE__URI` overrides `database.uri`.
 Only development and test ship with a JWT secret. In any other mode the server
 refuses to start until `AUTH__SECRET` is set.
 
+Browsers may only call the API from the origins in `cors.allowed_origins`. It
+is `*` (any origin) in development and empty everywhere else, so set it for
+production, for example `CORS__ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com`.
+
 ### API documentation
 
 This template is deliberately minimal, so it does not generate or serve an
@@ -112,3 +117,7 @@ to, which defaults to `postgres://localhost:5432/postgres` (see
 
 Contributors are welcome, please fork and send pull requests! If you find a bug
 or have any ideas on how to improve this project please submit an issue.
+
+## License
+
+[MIT](LICENSE)

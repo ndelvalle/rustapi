@@ -4,7 +4,7 @@ use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::info;
 
-use rustapi::app::{create_app, Context};
+use rustapi::app::{Context, create_app};
 use rustapi::database;
 use rustapi::logger;
 use rustapi::settings::Settings;

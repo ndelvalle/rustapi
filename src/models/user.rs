@@ -1,5 +1,5 @@
-use argon2::password_hash::{self, phc::PasswordHash, PasswordHasher, PasswordVerifier};
 use argon2::Argon2;
+use argon2::password_hash::{self, PasswordHasher, PasswordVerifier, phc::PasswordHash};
 use sqlx::{FromRow, PgPool};
 use std::sync::OnceLock;
 use tokio::task;

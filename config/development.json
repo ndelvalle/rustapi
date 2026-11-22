@@ -3,5 +3,9 @@
 
   "auth": {
     "secret": "secret"
+  },
+
+  "cors": {
+    "allowed_origins": ["*"]
   }
 }

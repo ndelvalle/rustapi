@@ -1,11 +1,11 @@
-use axum::http::{header, StatusCode};
 use axum::Router;
+use axum::http::{HeaderValue, StatusCode, header};
 use sqlx::PgPool;
 use std::sync::Arc;
 use std::time::Duration;
 use tower_http::{
     compression::CompressionLayer,
-    cors::CorsLayer,
+    cors::{AllowOrigin, Any, CorsLayer},
     limit::RequestBodyLimitLayer,
     request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
     sensitive_headers::SetSensitiveHeadersLayer,
@@ -60,8 +60,25 @@ pub fn create_app(ctx: Context) -> Router {
         .layer(PropagateRequestIdLayer::x_request_id())
         // Generate an `X-Request-Id` for requests that come without one
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
-        // CORS configuration. This should probably be more restrictive in
-        // production.
-        .layer(CorsLayer::permissive())
+        // Let browsers on the allowed origins call the API
+        .layer(cors_layer(&ctx.settings.cors.allowed_origins))
         .with_state(ctx)
+}
+
+fn cors_layer(allowed_origins: &[String]) -> CorsLayer {
+    let allow_origin = if allowed_origins.iter().any(|origin| origin == "*") {
+        AllowOrigin::any()
+    } else {
+        AllowOrigin::list(allowed_origins.iter().map(|origin| {
+            origin
+                .parse::<HeaderValue>()
+                .unwrap_or_else(|_| panic!("Invalid CORS origin {origin}"))
+        }))
+    };
+
+    CorsLayer::new()
+        .allow_origin(allow_origin)
+        .allow_methods(Any)
+        .allow_headers(Any)
+        .expose_headers(Any)
 }

@@ -9,6 +9,10 @@
     "uri": "postgres://localhost:5432/rustapi"
   },
 
+  "cors": {
+    "allowed_origins": []
+  },
+
   "logger": {
     "level": "debug"
   }
