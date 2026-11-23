@@ -17,6 +17,7 @@ use crate::common::custom_response::{CustomResponse, CustomResponseBuilder, Resp
 use crate::common::date::Date;
 use crate::common::pagination::Pagination;
 use crate::common::to_uuid::to_uuid;
+use crate::common::validated_json::ValidatedJson;
 use crate::errors::Error;
 use crate::models::cat::Cat;
 
@@ -33,10 +34,8 @@ pub fn create_route(ctx: Context) -> Router<Context> {
 async fn create_cat(
     State(ctx): State<Context>,
     user: AuthenticatedUser,
-    Json(payload): Json<CreateCat>,
+    ValidatedJson(payload): ValidatedJson<CreateCat>,
 ) -> Response<CatResponse> {
-    payload.validate()?;
-
     let cat = Cat::create(&ctx.db, user.user_id, &payload.name).await?;
     let response = CatResponse::from(cat);
 
@@ -120,10 +119,8 @@ async fn update_cat_by_id(
     State(ctx): State<Context>,
     user: AuthenticatedUser,
     Path(id): Path<String>,
-    Json(payload): Json<UpdateCat>,
+    ValidatedJson(payload): ValidatedJson<UpdateCat>,
 ) -> Result<Json<CatResponse>, Error> {
-    payload.validate()?;
-
     let cat_id = to_uuid(id)?;
     let cat = Cat::update_name(&ctx.db, user.user_id, cat_id, &payload.name)
         .await?

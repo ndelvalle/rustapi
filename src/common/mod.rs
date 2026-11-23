@@ -4,3 +4,4 @@ pub mod date;
 pub mod pagination;
 pub mod to_uuid;
 pub mod token;
+pub mod validated_json;

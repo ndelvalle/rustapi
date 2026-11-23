@@ -1,5 +1,7 @@
 use axum::Router;
 use axum::http::{HeaderValue, StatusCode, header};
+use axum::middleware;
+use axum::response::{IntoResponse, Response};
 use sqlx::PgPool;
 use std::sync::Arc;
 use std::time::Duration;
@@ -13,11 +15,9 @@ use tower_http::{
     trace,
 };
 
+use crate::errors::Error;
 use crate::routes;
 use crate::settings::Settings;
-
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
-const REQUEST_BODY_LIMIT: usize = 1024 * 1024;
 
 // This is the context shared with every request handler.
 #[derive(Clone)]
@@ -27,6 +27,10 @@ pub struct Context {
 }
 
 pub fn create_app(ctx: Context) -> Router {
+    let server = &ctx.settings.server;
+    let request_timeout = Duration::from_secs(server.request_timeout_seconds);
+    let request_body_limit = server.request_body_limit_bytes;
+
     Router::new()
         .merge(routes::status::create_route())
         .merge(routes::user::create_route())
@@ -35,13 +39,18 @@ pub fn create_app(ctx: Context) -> Router {
             // All public v1 routes will be nested here.
             Router::new().merge(routes::cat::create_route(ctx.clone())),
         ))
+        // Answer unknown routes and unsupported methods with the standard error body
+        .fallback(async || Error::not_found())
+        .method_not_allowed_fallback(async || Error::MethodNotAllowed)
         // Abort requests that take too long with a 408 status code
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,
-            REQUEST_TIMEOUT,
+            request_timeout,
         ))
         // Reject request bodies that are too large with a 413 status code
-        .layer(RequestBodyLimitLayer::new(REQUEST_BODY_LIMIT))
+        .layer(RequestBodyLimitLayer::new(request_body_limit))
+        // Give the errors of the two layers above the standard error body
+        .layer(middleware::map_response(standardize_layer_errors))
         // High level logging of requests and responses
         .layer(
             trace::TraceLayer::new_for_http()
@@ -63,6 +72,25 @@ pub fn create_app(ctx: Context) -> Router {
         // Let browsers on the allowed origins call the API
         .layer(cors_layer(&ctx.settings.cors.allowed_origins))
         .with_state(ctx)
+}
+
+// The timeout and body limit layers answer on their own, without a JSON body.
+async fn standardize_layer_errors(response: Response) -> Response {
+    let is_json = response
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| value.starts_with(mime::APPLICATION_JSON.as_ref()));
+
+    if is_json {
+        return response;
+    }
+
+    match response.status() {
+        StatusCode::REQUEST_TIMEOUT => Error::RequestTimeout.into_response(),
+        StatusCode::PAYLOAD_TOO_LARGE => Error::PayloadTooLarge.into_response(),
+        _ => response,
+    }
 }
 
 fn cors_layer(allowed_origins: &[String]) -> CorsLayer {

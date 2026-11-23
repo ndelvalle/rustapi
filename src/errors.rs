@@ -1,4 +1,5 @@
 use axum::Json;
+use axum::extract::rejection::JsonRejection;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde_json::json;
@@ -23,6 +24,18 @@ pub enum Error {
     #[error("Validation failed")]
     Validation(FieldErrors),
 
+    #[error("{}", .0.body_text())]
+    InvalidBody(JsonRejection),
+
+    #[error("Method not allowed")]
+    MethodNotAllowed,
+
+    #[error("Request timed out")]
+    RequestTimeout,
+
+    #[error("Request body is too large")]
+    PayloadTooLarge,
+
     #[error("Conflict")]
     Conflict(FieldErrors),
 
@@ -44,7 +57,7 @@ pub enum Error {
 
 impl Error {
     fn get_codes(&self) -> (StatusCode, u16) {
-        match *self {
+        match self {
             // 4XX Errors
             Error::ParseId(_) => (StatusCode::BAD_REQUEST, 40001),
             Error::BadRequest(_) => (StatusCode::BAD_REQUEST, 40002),
@@ -58,6 +71,10 @@ impl Error {
             Error::Authenticate(AuthenticateError::Locked) => (StatusCode::LOCKED, 40006),
             Error::Conflict(_) => (StatusCode::CONFLICT, 40007),
             Error::Validation(_) => (StatusCode::UNPROCESSABLE_ENTITY, 40008),
+            Error::InvalidBody(rejection) => (rejection.status(), 40009),
+            Error::MethodNotAllowed => (StatusCode::METHOD_NOT_ALLOWED, 40010),
+            Error::RequestTimeout => (StatusCode::REQUEST_TIMEOUT, 40011),
+            Error::PayloadTooLarge => (StatusCode::PAYLOAD_TOO_LARGE, 40012),
 
             // 5XX Errors
             Error::Authenticate(AuthenticateError::TokenCreation) => {
@@ -82,6 +99,16 @@ impl Error {
             field.to_owned(),
             vec![message.to_owned()],
         )]))
+    }
+}
+
+impl From<JsonRejection> for Error {
+    fn from(rejection: JsonRejection) -> Self {
+        if rejection.status() == StatusCode::PAYLOAD_TOO_LARGE {
+            Error::PayloadTooLarge
+        } else {
+            Error::InvalidBody(rejection)
+        }
     }
 }
 
