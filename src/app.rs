@@ -1,4 +1,5 @@
 use axum::Router;
+use axum::extract::Request;
 use axum::http::{HeaderValue, StatusCode, header};
 use axum::middleware;
 use axum::response::{IntoResponse, Response};
@@ -14,6 +15,7 @@ use tower_http::{
     timeout::TimeoutLayer,
     trace,
 };
+use tracing::Span;
 
 use crate::errors::Error;
 use crate::routes;
@@ -54,7 +56,7 @@ pub fn create_app(ctx: Context) -> Router {
         // High level logging of requests and responses
         .layer(
             trace::TraceLayer::new_for_http()
-                .make_span_with(trace::DefaultMakeSpan::new().include_headers(true))
+                .make_span_with(request_span)
                 .on_request(trace::DefaultOnRequest::new().level(tracing::Level::INFO))
                 .on_response(trace::DefaultOnResponse::new().level(tracing::Level::INFO)),
         )
@@ -72,6 +74,23 @@ pub fn create_app(ctx: Context) -> Router {
         // Let browsers on the allowed origins call the API
         .layer(cors_layer(&ctx.settings.cors.allowed_origins))
         .with_state(ctx)
+}
+
+// The span is created at the error level, which every log level enables, so the request ID
+// reaches every log line of the request.
+fn request_span(request: &Request) -> Span {
+    let request_id = request
+        .headers()
+        .get("x-request-id")
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or_default();
+
+    tracing::error_span!(
+        "request",
+        method = %request.method(),
+        uri = %request.uri(),
+        request_id = %request_id,
+    )
 }
 
 // The timeout and body limit layers answer on their own, without a JSON body.
