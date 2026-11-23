@@ -10,6 +10,7 @@ use crate::app::Context;
 use crate::common::custom_response::{CustomResponse, CustomResponseBuilder};
 use crate::common::date::Date;
 use crate::common::token;
+use crate::common::validated_json::ValidatedJson;
 use crate::errors::{AuthenticateError, Error, ResultExt};
 use crate::models::user;
 use crate::models::user::User;
@@ -22,10 +23,8 @@ pub fn create_route() -> Router<Context> {
 
 async fn create_user(
     State(ctx): State<Context>,
-    Json(body): Json<CreateBody>,
+    ValidatedJson(body): ValidatedJson<CreateBody>,
 ) -> Result<CustomResponse<UserResponse>, Error> {
-    body.validate()?;
-
     let password_hash = user::hash_password(body.password).await?;
     let user = User::create(&ctx.db, &body.name, &body.email, &password_hash)
         .await
@@ -44,10 +43,8 @@ async fn create_user(
 
 async fn authenticate_user(
     State(ctx): State<Context>,
-    Json(body): Json<AuthorizeBody>,
+    ValidatedJson(body): ValidatedJson<AuthorizeBody>,
 ) -> Result<Json<AuthenticateResponse>, Error> {
-    body.validate()?;
-
     let user = User::find_by_email(&ctx.db, &body.email).await?;
 
     let hash = user.as_ref().map(|user| user.password.clone());

@@ -20,8 +20,8 @@ To use this template as your project starting point, click "Use this template" a
 * Layered configuration. Based on [config-rs](https://github.com/rust-cli/config-rs)
 * SQL migrations. The database generates [UUIDv7](https://www.rfc-editor.org/rfc/rfc9562#name-uuid-version-7) IDs and maintains the timestamps
 * Logs. Based on [tracing](https://github.com/tokio-rs/tracing)
-* Error handling, with the invalid fields listed in validation errors
-* Graceful shutdown, request timeout, body size limit and request IDs
+* Error handling. Every error has the same JSON body, and validation errors list the invalid fields
+* Graceful shutdown, request IDs, and a configurable request timeout and body size limit
 * Status route that checks the database
 * Pagination
 * E2E Tests
@@ -51,7 +51,8 @@ To use this template as your project starting point, click "Use this template" a
 │   │   ├── mod.rs
 │   │   ├── pagination.rs
 │   │   ├── to_uuid.rs
-│   │   └── token.rs
+│   │   ├── token.rs
+│   │   └── validated_json.rs
 │   ├── database.rs      # Connection pool and migrations
 │   ├── errors.rs
 │   ├── lib.rs           # The API as a library, shared by the binary and the tests
@@ -76,9 +77,12 @@ To use this template as your project starting point, click "Use this template" a
 Create the database and start the server. Migrations are applied on startup.
 
 ```
-createdb rustapi
-cargo run
+make db-create
+make run
 ```
+
+The Makefile has the other commands, such as `make check` to run the same
+checks as CI and `make db-reset` to start over with an empty database.
 
 Configuration is layered. `config/default.json` is loaded first, then
 `config/<RUN_MODE>.json` (`development` when `RUN_MODE` is not set), then an
@@ -104,7 +108,7 @@ and integrates well with axum.
 To run tests make sure PostgreSQL is up and running.
 
 ```
-cargo test
+make test
 ```
 
 Every test starts its own instance of the API on a random port, backed by a

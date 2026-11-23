@@ -1,10 +1,29 @@
+DATABASE_NAME ?= rustapi
+
+.PHONY: run build test fmt lint check db-create db-drop db-reset
+
+run:
+	cargo run
+
+build:
+	cargo build --release
+
 test:
-	# Every test runs against its own temporary database, created on the server
-	# that DATABASE_URL points to.
+	cargo test
 
-	# By default the Rust test harness hides output from test execution to keep
-	# results readable. The nocapture flag disables that behavior.
+fmt:
+	cargo fmt
 
-	cargo test -- \
-  		--nocapture \
-  		--color=always
+lint:
+	cargo fmt --check
+	cargo clippy --all-targets -- -D warnings
+
+check: lint test
+
+db-create:
+	createdb $(DATABASE_NAME)
+
+db-drop:
+	dropdb --if-exists $(DATABASE_NAME)
+
+db-reset: db-drop db-create

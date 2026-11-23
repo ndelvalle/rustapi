@@ -2,7 +2,9 @@
   "environment": "development",
 
   "server": {
-    "port": 8080
+    "port": 8080,
+    "request_timeout_seconds": 30,
+    "request_body_limit_bytes": 1048576
   },
 
   "database": {

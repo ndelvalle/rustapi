@@ -5,6 +5,8 @@ use std::{env, fmt};
 #[derive(Debug, Clone, Deserialize)]
 pub struct Server {
     pub port: u16,
+    pub request_timeout_seconds: u64,
+    pub request_body_limit_bytes: usize,
 }
 
 #[derive(Debug, Clone, Deserialize)]
