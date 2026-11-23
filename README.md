@@ -19,7 +19,7 @@ To use this template as your project starting point, click "Use this template" a
 * Authentication. Based on [jsonwebtoken](https://github.com/Keats/jsonwebtoken)
 * Layered configuration. Based on [config-rs](https://github.com/rust-cli/config-rs)
 * SQL migrations. The database generates [UUIDv7](https://www.rfc-editor.org/rfc/rfc9562#name-uuid-version-7) IDs and maintains the timestamps
-* Logs. Based on [tracing](https://github.com/tokio-rs/tracing)
+* Logs. Based on [tracing](https://github.com/tokio-rs/tracing), with the request ID on every line logged while handling a request
 * Error handling. Every error has the same JSON body, and validation errors list the invalid fields
 * Graceful shutdown, request IDs, and a configurable request timeout and body size limit
 * Status route that checks the database
